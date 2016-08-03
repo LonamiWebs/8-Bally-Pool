@@ -12,11 +12,12 @@ Box2DProcessing box2d;
 PoolTable table;
 
 void settings() {
-  size(820, 640);
+  size(1000, 640);
 }
 
 void setup() {
   smooth();
+  surface.setTitle("8-Ball Pool");
 
   // Initialize box2d physics and create the world
   box2d = new Box2DProcessing(this);
@@ -27,7 +28,7 @@ void setup() {
 }
 
 void draw() {
-  background(20);
+  background(255, 210, 240);
   // We must always step through time!
   box2d.step();
   

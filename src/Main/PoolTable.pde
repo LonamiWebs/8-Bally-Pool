@@ -111,16 +111,32 @@ class PoolTable {
     float holeRadius = getHoleRadius(ballRadius);
     float boundaryThickness = holeRadius;
     
-    PVector boundaryTop = new PVector(location.x, location.y - boundaryThickness);
+    // ----------------------------------------------------------------------------- Top
+    PVector boundaryLoc = new PVector(location.x, location.y - boundaryThickness);
+    // The horizontal size is (table width / 2) - (radius of the middle hole)
+    PVector horizontalSize = new PVector(size.x / 2f - holeRadius, boundaryThickness);
+    boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, TOP));
     
-    // The horizontal size is (table width / 2) - (4 times the radius of the hole)
-    // 4 times because 1 radius from the left + 2 middle + 1 on the right
-    PVector horizontalSize = new PVector(size.x / 2f - holeRadius * 4, boundaryThickness);
-    boundaries.add(new TableBoundary(boundaryTop, horizontalSize, TOP));
+    // Move to the next table boundary by adding its size + diameter of the hole
+    boundaryLoc.add(horizontalSize.x + holeRadius * 2f, 0);
+    boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, TOP));
     
-    // Move to the next on the top
-    boundaryTop.add(new PVector(horizontalSize.x, 0));
-    boundaries.add(new TableBoundary(boundaryTop, horizontalSize, TOP));
+    // ----------------------------------------------------------------------------- Bottom
+    boundaryLoc.set(location.x, location.y + size.y);
+    boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, BOTTOM));
+    // Move to the next table boundary by adding its size + diameter of the hole
+    boundaryLoc.add(horizontalSize.x + holeRadius * 2f, 0);
+    boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, BOTTOM));
+    
+    // ----------------------------------------------------------------------------- Left
+    boundaryLoc.set(location.x - boundaryThickness, location.y);
+    // The vertical size is the same as the table height, since there's only one
+    PVector verticalSize = new PVector(boundaryThickness, size.y);
+    boundaries.add(new TableBoundary(boundaryLoc, verticalSize, LEFT));
+    
+    // ----------------------------------------------------------------------------- Right
+    boundaryLoc.add(size.x + boundaryThickness, 0);
+    boundaries.add(new TableBoundary(boundaryLoc, verticalSize, RIGHT));
   }
   
 
