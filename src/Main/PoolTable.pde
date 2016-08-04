@@ -5,9 +5,9 @@ class PoolTable {
   PVector location;
   PVector size;
 
-  // A list we'll use to track fixed objects
-  ArrayList<TableBoundary> boundaries;
-  // A list for all of our balls
+  // Lists we'll use to track objects
+  ArrayList<TableBoundary> boundaries; // Track table
+  ArrayList<Hole> holes;
   ArrayList<Ball> balls;
   
   // Initializes the pool table with a relative percentage width
@@ -17,13 +17,24 @@ class PoolTable {
     // Set table size and location
     setSizeAndLocation(relativeWidth);
   
-    // Create ArrayLists  
-    balls = new ArrayList<Ball>();
+    // Create ArrayLists
     boundaries = new ArrayList<TableBoundary>();
+    holes = new ArrayList<Hole>();
+    balls = new ArrayList<Ball>();
   
     // Add a bunch of fixed boundaries
     float ballRadius = getBallRadius(relativeWidth);
-    addTableBoundaries(ballRadius);
+    float holeRadius = getHoleRadius(ballRadius);
+    addTableBoundaries(holeRadius);
+    
+    // Add a bunch of holes (upper holes)
+    holes.add(new Hole(location.copy(), holeRadius)); // (0.0, 0.0)
+    holes.add(new Hole(new PVector(location.x + size.x / 2, location.y), holeRadius)); // (0.5, 0.0)
+    holes.add(new Hole(new PVector(location.x + size.x, location.y), holeRadius)); // (1.0, 0.0)
+    // Add a bunch of holes (downer holes)
+    holes.add(new Hole(new PVector(location.x, location.y + size.y), holeRadius)); // (0.0, 1.0)
+    holes.add(new Hole(new PVector(location.x + size.x / 2, location.y + size.y), holeRadius)); // (0.5, 1.0)
+    holes.add(new Hole(new PVector(location.x + size.x, location.y + size.y), holeRadius)); // (1.0, 1.0)
     
     // Place the balls triangle
     float triangleY = height / 2;
@@ -48,7 +59,7 @@ class PoolTable {
     // Hence, relativeWidth      x           57.15 * relativeWidth
     //        ------------- = ------- -> x = --------------------- = relativeWidth * 0.021166667
     //           2700mm       57.15mm               2700mm
-    return relativeTableWidth * width * 0.015f; // 0.02 is too large, this looks better!
+    return relativeTableWidth * width * 0.021166667;
   }
   
   // Returns the real radius for the ball holes to be displayed
@@ -106,9 +117,8 @@ class PoolTable {
     }
   }
   
-  void addTableBoundaries(float ballRadius) {
+  void addTableBoundaries(float holeRadius) {
     // The table boundaries are displaced the radius of the hole from the corner
-    float holeRadius = getHoleRadius(ballRadius);
     float boundaryThickness = holeRadius;
     
     // ----------------------------------------------------------------------------- Top
@@ -139,6 +149,21 @@ class PoolTable {
     boundaries.add(new TableBoundary(boundaryLoc, verticalSize, RIGHT));
   }
   
+  void update() {
+    
+    // Check if any hole contains any ball
+    for (Hole hole : holes) {
+      for (int i = balls.size() - 1; i >= 0; i--) {
+        Ball ball = balls.get(i);
+        
+        // If the hole contains the ball, remove it from both box2d world and our list
+        if (hole.containsBall(ball)) {
+          ball.killBody();
+          balls.remove(i);
+        }
+      }
+    }
+  }
 
   void display() {
     
@@ -147,13 +172,18 @@ class PoolTable {
     noStroke();
     rect(location.x, location.y, size.x, size.y);
   
+    // Display all the holes
+    for (Hole hole : holes) {
+      hole.display();
+    }
+  
     // Display all the boundaries
-    for (TableBoundary wall: boundaries) {
-      wall.display();
+    for (TableBoundary boundary : boundaries) {
+      boundary.display();
     }
   
     // Display all the balls
-    for (Ball b: balls) {
+    for (Ball b : balls) {
       b.display();
     }
   }

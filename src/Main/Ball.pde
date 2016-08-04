@@ -26,21 +26,25 @@ class Ball {
     // Add th box to the box2d world
     makeBody(new Vec2(x, y), radius);
   }
-
-  // This function removes the particle from the box2d world
-  void killBody() {
-    box2d.destroyBody(body);
+  
+  PVector getLocationPVector() {
+    Vec2 loc = getLocation();
+    return new PVector(loc.x, loc.y);
+  }
+  
+  Vec2 getLocation() {
+    return box2d.getBodyPixelCoord(body);
   }
 
-  // Kills the ball, removing it from the Box2D world
-  void kill() {
-    killBody();
+  // This function removes the ball from the box2d world
+  void killBody() {
+    box2d.destroyBody(body);
   }
 
   // Drawing the ball
   void display() {
     // We look at each body and get its screen position
-    Vec2 pos = box2d.getBodyPixelCoord(body);
+    Vec2 pos = getLocation();
     // Get its angle of rotation
     float a = body.getAngle();
 

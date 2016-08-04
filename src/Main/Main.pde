@@ -16,7 +16,6 @@ void settings() {
 }
 
 void setup() {
-  smooth();
   surface.setTitle("8-Ball Pool");
 
   // Initialize box2d physics and create the world
@@ -28,9 +27,10 @@ void setup() {
 }
 
 void draw() {
+  smooth();
   background(255, 210, 240);
   // We must always step through time!
   box2d.step();
-  
+  table.update();
   table.display();
 }

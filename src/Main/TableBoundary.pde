@@ -12,12 +12,7 @@ class TableBoundary {
     makeBody(location, size, position);
   }
 
-  // This function removes the particle from the box2d world
-  void killBody() {
-    box2d.destroyBody(body);
-  }
-
-  // Drawing the box
+  // Drawing the boundary
   void display() {
     // We look at each body and get its screen position
     Vec2 pos = box2d.getBodyPixelCoord(body);
@@ -44,7 +39,7 @@ class TableBoundary {
     popMatrix();
   }
 
-  // This function adds the rectangle to the box2d world
+  // This function adds the fixed table boundary to the box2d world
   void makeBody(PVector corner, PVector size, int position) {
 
     // Define a polygon (this is what we use for a rectangle)
