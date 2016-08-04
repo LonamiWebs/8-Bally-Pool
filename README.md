@@ -5,6 +5,7 @@
 - `Audacity` for audio editing
 - `Processing` for texture generation
 - `Box2D for Processing` (wrapper for `jbox2d`) as physics engine
+- `Minim` sound library for Processing
 
 ## Websites that provide resources
 - Sounds licensed under _Creative Commons_ from [Freesound.org](freesound.org)

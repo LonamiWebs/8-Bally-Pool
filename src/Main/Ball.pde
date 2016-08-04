@@ -4,10 +4,11 @@ class Ball {
 
   // We need to keep track of a Body and its radius
   Body body;
-  float radius = 24;
+  float radius;
+  
+  boolean isDying; // Has the ball fallen in a hole? And is dying painfully?
   
   int number;
-  boolean strips;
   PImage ballGraphics;
 
   // Constructor
@@ -15,13 +16,10 @@ class Ball {
     
     radius = _radius;
     number = _number;
-    if (number > 8) {
-      strips = true;
-      _number -= 8; // lower the number by 8 to pick the right color
-    }
     
-    // create the graphics
+    // Create the graphics
     ballGraphics = loadImage("img/ball_" + number + ".png");
+    ballGraphics.resize(int(radius * 2), int(radius * 2)); // Resize once to avoid scaling on display()
     
     // Add th box to the box2d world
     makeBody(new Vec2(x, y), radius);
@@ -36,9 +34,30 @@ class Ball {
     return box2d.getBodyPixelCoord(body);
   }
 
-  // This function removes the ball from the box2d world
-  void killBody() {
-    box2d.destroyBody(body);
+  // This function marks the ball as dead
+  void kill() {
+    isDying = true; // Mark the ball as dying for it to be animated
+  }
+  
+  // Determines whether the ball is dead yet or not
+  boolean isDead() {
+    return radius < 0.5;
+  }
+  
+  void update() {
+    // If the ball is dying, shrink it
+    if (isDying) {
+      radius = lerp(radius, 0, 0.1); // from -> to, speed
+      
+      Fixture f = body.getFixtureList();
+      CircleShape cs = (CircleShape) f.getShape();
+      cs.m_radius = box2d.scalarPixelsToWorld(radius);
+      
+      if (isDead()) { // If the ball radius reached its limit
+        // Remove it from the box2d world
+        box2d.destroyBody(body);
+      }
+    }
   }
 
   // Drawing the ball
@@ -77,15 +96,17 @@ class Ball {
     bd.type = BodyType.DYNAMIC;
     bd.position.set(box2d.coordPixelsToWorld(center));
     // Parameters that affect physics
-    bd.linearDamping = 0.2;
-    bd.angularDamping = 0.2;
+    bd.linearDamping = 0.3;
+    bd.angularDamping = 0.3;
     // ---------------------- TODO: limit velocity, if less than (minVel), stop the body so the next player can play its turn
 
     body = box2d.createBody(bd);
     body.createFixture(fd);
 
     // Give it some initial random velocity for testing purposes
-    body.setLinearVelocity(new Vec2(random(-30, 5), random(5, 10)));
+    body.setLinearVelocity(new Vec2(random(-40, 10), random(5, 10)));
     body.setAngularVelocity(random(-5, 5));
+    
+    body.setUserData(this); // So we can retrieve the parent class on collisions 
   }
 }

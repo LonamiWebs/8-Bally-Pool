@@ -1,15 +1,20 @@
 
 // Main Processing tab
-
+import ddf.minim.*;
 import shiffman.box2d.*;
 import org.jbox2d.collision.shapes.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.*;
+import org.jbox2d.dynamics.contacts.*;
 
 // A reference to our box2d world
 Box2DProcessing box2d;
 
 PoolTable table;
+
+Minim minim;
+AudioSample[] ballHitSamples; // Store multiple samples for the ball hits
+AudioSample[] woodHitSamples; // Store multiple samples for the wood hits
 
 void settings() {
   size(1000, 640);
@@ -21,9 +26,27 @@ void setup() {
   // Initialize box2d physics and create the world
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
-  // We are setting a custom gravity
+  
+  // We are setting a custom gravity (no gravity)
   box2d.setGravity(0, 0);
+  
+  // Turn on collision listening
+  box2d.listenForCollisions();
+  
   table = new PoolTable(0.8);
+  
+  // Load some hit sounds
+  minim = new Minim(this);
+  
+  ballHitSamples = new AudioSample[5];
+  for (int i = 0; i < ballHitSamples.length; i++) {
+    ballHitSamples[i] = minim.loadSample("audio/ballhit_" + (i + 1) + ".aiff", 512); // 512 buffer size
+  }
+  
+  woodHitSamples = new AudioSample[9];
+  for (int i = 0; i < woodHitSamples.length; i++) {
+    woodHitSamples[i] = minim.loadSample("audio/woodhit_" + (i + 1) + ".aiff", 512); // 512 buffer size
+  }
 }
 
 void draw() {
@@ -33,4 +56,58 @@ void draw() {
   box2d.step();
   table.update();
   table.display();
+}
+
+void beginContact(Contact cp) {
+  // Get both fixtures
+  Fixture f1 = cp.getFixtureA();
+  Fixture f2 = cp.getFixtureB();
+  
+  // Get both bodies
+  Body b1 = f1.getBody();
+  Body b2 = f2.getBody();
+
+  // Get our objects that reference these bodies
+  Object o1 = b1.getUserData();
+  Object o2 = b2.getUserData();
+  
+  // Get the velocity magnitude, and find the highest
+  float mag1 = b1.getLinearVelocity().length();
+  float mag2 = b2.getLinearVelocity().length();
+  float mag = max(mag1, mag2);
+  
+  // Use the highest velocity to determine the volume (between 0-1)
+  float vol = constrain(map(mag, 0, 10, 0, 1), 0, 1);
+  
+  // If both objects are balls, play a random ball hit sound
+  if (o1.getClass() == Ball.class && o2.getClass() == Ball.class) {
+    
+    int n = int(random(ballHitSamples.length)); // Get a random sample
+    setVolume(ballHitSamples[n], vol); // Set the volume depending its velocity
+    ballHitSamples[n].trigger(); // Play it
+    
+  } else { // One must have been wood
+    
+    int n = int(random(woodHitSamples.length)); // Get a random sample
+    setVolume(woodHitSamples[n], vol); // Set the volume depending its velocity
+    woodHitSamples[n].trigger(); // Play it
+  }
+}
+
+void endContact(Contact cp) {
+}
+
+void setVolume(AudioSample sample, float volume) {
+  
+  // TODO Update not to use deprecated methods
+  // TODO set pan depending on its location on screen?
+  if (sample.hasControl(Controller.VOLUME)) // Prefer volume over gain hack
+  {
+    sample.setVolume(volume);
+  }
+  else if (sample.hasControl(Controller.GAIN)) // "Volume" fallback
+  {
+    volume = map(volume, 0, 1, -30, 0); // -30 is almost like unaudible, this does the trick
+    sample.setGain(volume);
+  }
 }

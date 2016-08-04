@@ -4,6 +4,8 @@ class PoolTable {
   // Location and size
   PVector location;
   PVector size;
+  
+  PImage tableGraphics;
 
   // Lists we'll use to track objects
   ArrayList<TableBoundary> boundaries; // Track table
@@ -16,6 +18,10 @@ class PoolTable {
     
     // Set table size and location
     setSizeAndLocation(relativeWidth);
+    
+    // Create the graphics
+    tableGraphics = loadImage("img/table.png");
+    tableGraphics.resize(int(size.x), int(size.y)); // Resize once to avoid scaling on display()
   
     // Create ArrayLists
     boundaries = new ArrayList<TableBoundary>();
@@ -156,11 +162,19 @@ class PoolTable {
       for (int i = balls.size() - 1; i >= 0; i--) {
         Ball ball = balls.get(i);
         
-        // If the hole contains the ball, remove it from both box2d world and our list
+        // If the hole contains the ball, remove it from both box2d world
         if (hole.containsBall(ball)) {
-          ball.killBody();
-          balls.remove(i);
+          ball.kill();
         }
+      }
+    }
+    
+    // Update all the balls
+    for (int i = balls.size() - 1; i >= 0; i--) {
+      Ball ball = balls.get(i);
+      ball.update();
+      if (ball.isDead()) { // If a ball is now dead, remove it from our list
+        balls.remove(i);
       }
     }
   }
@@ -168,9 +182,14 @@ class PoolTable {
   void display() {
     
     rectMode(CORNER);
+    /*
     fill(25, 150, 15);
     noStroke();
     rect(location.x, location.y, size.x, size.y);
+    */
+    
+    imageMode(CORNER);
+    image(tableGraphics, location.x, location.y);
   
     // Display all the holes
     for (Hole hole : holes) {

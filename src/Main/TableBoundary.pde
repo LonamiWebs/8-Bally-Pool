@@ -87,5 +87,7 @@ class TableBoundary {
     body = box2d.createBody(bd);
 
     body.createFixture(sd, 1.0);
+    
+    body.setUserData(this); // So we can retrieve the parent class on collisions
   }
 }
