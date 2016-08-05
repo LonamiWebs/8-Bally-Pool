@@ -12,6 +12,11 @@ class TableBoundary {
     makeBody(location, size, position);
   }
 
+  // See below to know what trim side means
+  TableBoundary(PVector location, PVector size, int position, int trimSide) {
+    makeBody(location, size, position, trimSide);
+  }
+
   // Drawing the boundary
   void display() {
     // We look at each body and get its screen position
@@ -41,6 +46,12 @@ class TableBoundary {
 
   // This function adds the fixed table boundary to the box2d world
   void makeBody(PVector corner, PVector size, int position) {
+    makeBody(corner, size, position, 0);
+  }
+  
+  // Trim side can be -1, 0 or 1, meaning that 0 will not trim any horizontal side
+  // By "trimming" a side we make the bevel half the size
+  void makeBody(PVector corner, PVector size, int position, int trimSide) {
 
     // Define a polygon (this is what we use for a rectangle)
     PolygonShape sd = new PolygonShape();
@@ -50,15 +61,32 @@ class TableBoundary {
       
       // done
       case TOP:
-        vertices[0] = box2d.vectorPixelsToWorld(0              , 0);
-        vertices[1] = box2d.vectorPixelsToWorld(size.x         , 0);
-        vertices[2] = box2d.vectorPixelsToWorld(size.x - size.y, size.y);
-        vertices[3] = box2d.vectorPixelsToWorld(0      + size.y, size.y);
+        vertices[0] = box2d.vectorPixelsToWorld(0     , 0);
+        vertices[1] = box2d.vectorPixelsToWorld(size.x, 0);
+        
+        // Although it's possible not to trim any side, we don't need it in this game
+        assert(trimSide != 0);
+        if (trimSide == -1) {
+          vertices[2] = box2d.vectorPixelsToWorld(size.x - size.y, size.y);
+          vertices[3] = box2d.vectorPixelsToWorld(size.y / 2f    , size.y); // Half bevel
+        } else {
+          vertices[2] = box2d.vectorPixelsToWorld(size.x - size.y / 2f, size.y); // Half bevel
+          vertices[3] = box2d.vectorPixelsToWorld(size.y              , size.y);
+        }
+        
         break;
       
       case BOTTOM:
-        vertices[0] = box2d.vectorPixelsToWorld(0      + size.y, 0);
-        vertices[1] = box2d.vectorPixelsToWorld(size.x - size.y, 0);
+        
+        assert(trimSide != 0);
+        if (trimSide == -1) {
+          vertices[0] = box2d.vectorPixelsToWorld(0      + size.y / 2f, 0);
+          vertices[1] = box2d.vectorPixelsToWorld(size.x - size.y     , 0);
+        } else {
+          vertices[0] = box2d.vectorPixelsToWorld(0      + size.y     , 0);
+          vertices[1] = box2d.vectorPixelsToWorld(size.x - size.y / 2f, 0);
+        }
+        
         vertices[2] = box2d.vectorPixelsToWorld(size.x         , size.y);
         vertices[3] = box2d.vectorPixelsToWorld(0              , size.y);
         break;

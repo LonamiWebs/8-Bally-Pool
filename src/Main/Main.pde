@@ -107,7 +107,7 @@ void setVolume(AudioSample sample, float volume) {
   }
   else if (sample.hasControl(Controller.GAIN)) // "Volume" fallback
   {
-    volume = map(volume, 0, 1, -30, 0); // -30 is almost like unaudible, this does the trick
+    volume = map(volume, 0, 1, -15, 0); // -15 is almost like unaudible, this does the trick
     sample.setGain(volume);
   }
 }

@@ -7,6 +7,7 @@ class Ball {
   float radius;
   
   boolean isDying; // Has the ball fallen in a hole? And is dying painfully?
+  float minSpeed = 0.2; // If the ball speed is below this, early stop it
   
   int number;
   PImage ballGraphics;
@@ -44,10 +45,15 @@ class Ball {
     return radius < 0.5;
   }
   
+  // Determines whether the ball is still (stopped) or not
+  boolean isStill() {
+    return isDead() || body.getLinearVelocity().length() < minSpeed;
+  }
+  
   void update() {
     // If the ball is dying, shrink it
     if (isDying) {
-      radius = lerp(radius, 0, 0.1); // from -> to, speed
+      radius = lerp(radius, 0, 0.1); // values = from, to, speed
       
       Fixture f = body.getFixtureList();
       CircleShape cs = (CircleShape) f.getShape();
@@ -57,6 +63,10 @@ class Ball {
         // Remove it from the box2d world
         box2d.destroyBody(body);
       }
+    }
+    // Else if the speed is less than the minimum, stop the body completely
+    else if (body.getLinearVelocity().length() < minSpeed) {
+      body.setLinearVelocity(new Vec2(0, 0));
     }
   }
 
@@ -98,7 +108,6 @@ class Ball {
     // Parameters that affect physics
     bd.linearDamping = 0.3;
     bd.angularDamping = 0.3;
-    // ---------------------- TODO: limit velocity, if less than (minVel), stop the body so the next player can play its turn
 
     body = box2d.createBody(bd);
     body.createFixture(fd);
