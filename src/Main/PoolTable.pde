@@ -12,6 +12,8 @@ class PoolTable {
   ArrayList<TableBoundary> boundaries; // Track table
   ArrayList<Hole> holes;
   ArrayList<Ball> balls;
+  
+  Cue cue; // Cue stick
   // --------------------------------------------- Fields end
   // --------------------------------------------- Constructor begin
   
@@ -26,10 +28,11 @@ class PoolTable {
     tableGraphics = loadImage("img/table.png");
     tableGraphics.resize(int(size.x), int(size.y)); // Resize once to avoid scaling on display()
   
-    // Create ArrayLists
+    // Create ArrayLists and cue stick
     boundaries = new ArrayList<TableBoundary>();
     holes = new ArrayList<Hole>();
     balls = new ArrayList<Ball>();
+    cue = new Cue();
   
     // Determine some values
     float ballRadius = getBallRadius(relativeWidth);
@@ -197,6 +200,17 @@ class PoolTable {
         balls.remove(i);
       }
     }
+    
+    cue.update(getCueBall());
+  }
+  
+  Ball getCueBall() {
+    for (Ball ball : balls) {
+      if (ball.number == 0) {
+        return ball;
+      }
+    }
+    return null;
   }
   // --------------------------------------------- Update end
   // --------------------------------------------- Display begin
@@ -219,7 +233,26 @@ class PoolTable {
     for (Ball b : balls) {
       b.display();
     }
+    
+    if (areBallsStill()) {
+      cue.display();
+    }
   }
   // --------------------------------------------- Display end
   
+  boolean areBallsStill() {
+    for (Ball b : balls) {
+      if (!b.isStill()) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  // Should be called when the mouse is called
+  void mouseClick() {
+    if (areBallsStill()) {
+      cue.hit(getCueBall());
+    }
+  }
 }

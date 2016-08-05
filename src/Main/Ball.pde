@@ -112,10 +112,6 @@ class Ball {
     body = box2d.createBody(bd);
     body.createFixture(fd);
 
-    // Give it some initial random velocity for testing purposes
-    body.setLinearVelocity(new Vec2(random(-40, 10), random(5, 10)));
-    body.setAngularVelocity(random(-5, 5));
-    
     body.setUserData(this); // So we can retrieve the parent class on collisions 
   }
 }

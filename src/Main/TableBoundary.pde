@@ -33,6 +33,7 @@ class TableBoundary {
     rotate(-a);
     fill(180, 120, 40);
     stroke(0);
+    strokeWeight(2);
     beginShape();
     //println(vertices.length);
     // For every vertex, convert to pixel vector
