@@ -7,7 +7,7 @@ class Ball {
   float radius;
   
   boolean isDying; // Has the ball fallen in a hole? And is dying painfully?
-  float minSpeed = 0.2; // If the ball speed is below this, early stop it
+  float minSpeed = 0.5; // If the ball speed is below this, consider it still
   
   int number;
   PImage ballGraphics;
@@ -49,6 +49,7 @@ class Ball {
     // If the ball is dying, shrink it
     if (isDying) {
       radius = lerp(radius, 0, 0.1); // values = from, to, speed
+      body.setLinearVelocity(body.getLinearVelocity().mul(0.80)); // slow down the body
       
       Fixture f = body.getFixtureList();
       CircleShape cs = (CircleShape) f.getShape();
@@ -59,9 +60,10 @@ class Ball {
         box2d.destroyBody(body);
       }
     }
-    // Else if the speed is less than the minimum, stop the body completely
+    // Else if the speed is less than the minimum, slow it down faster
     else if (body.getLinearVelocity().length() < minSpeed) {
-      body.setLinearVelocity(new Vec2(0, 0));
+      // 0.75 is an arbitrary percentage to slow down the body
+      body.setLinearVelocity(body.getLinearVelocity().mul(0.75));
     }
   }
 
@@ -84,7 +86,7 @@ class Ball {
 
   // This function adds the ball to the box2d world
   void makeBody(Vec2 center, float radius) {
-
+    
     // Define the circle shape
     CircleShape sd = new CircleShape();
     sd.m_radius = box2d.scalarPixelsToWorld(radius);
@@ -93,16 +95,17 @@ class Ball {
     FixtureDef fd = new FixtureDef();
     fd.shape = sd;
     // Parameters that affect physics
+    // http://billiards.colostate.edu/threads/physics.html
     fd.density = 1;
-    fd.restitution = 0.7;
+    fd.restitution = 0.95;
 
     // Define the body and make it from the shape
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
     bd.position.set(box2d.coordPixelsToWorld(center));
     // Parameters that affect physics
-    bd.linearDamping = 0.3;
-    bd.angularDamping = 0.3;
+    bd.linearDamping = 0.5;
+    bd.angularDamping = 0.5;
 
     body = box2d.createBody(bd);
     body.createFixture(fd);

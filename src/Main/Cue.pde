@@ -6,10 +6,17 @@ class Cue {
   float cueLength = 300;
   float cueThickness = 8;
   
-  float cueStrength = 5; // Affects to the hit velocity
+  float cueStrength = 10; // Affects to the hit velocity
+  float cueMaxOffset = 100; // Limits the offset when pulling
   
   Vec2 startLoc;
   boolean hitting;
+  
+  CuePowerDisplay cuePower;
+  
+  Cue() {
+    cuePower = new CuePowerDisplay(0.6); // Arbitrary relative height
+  }
   
   void updateCueBall(Ball _cueBall) {
     cueBall = _cueBall;
@@ -48,6 +55,8 @@ class Cue {
     strokeWeight(cueThickness);
     stroke(120, 100, 20);
     line(start.x, start.y, end.x, end.y);
+    
+    cuePower.display(getPower(), getMaxPower());
   }
   
   // Determines the hit offset (or how much the mouse moved since it was pressed)
@@ -90,7 +99,8 @@ class Cue {
     }
     
     // Otherwise, return the distance between the normal point and the starting location
-    return dist(normalPoint.x, normalPoint.y, startLoc.x, startLoc.y);
+    float offset = dist(normalPoint.x, normalPoint.y, startLoc.x, startLoc.y); 
+    return min(offset, cueMaxOffset);
   }
   
   // Get ready to hit the ball
@@ -105,6 +115,8 @@ class Cue {
     hitting = false;
     
     Vec2 power = getPowerVector();
+    startLoc = null; // Reset start location after we found the power
+    
     if (power.lengthSquared() == 0) {
       return false;
     }
@@ -131,5 +143,10 @@ class Cue {
   // Returns the power magnitude for the current hit
   float getPower() {
     return determineHitOffset() * cueStrength;
+  }
+  
+  // Returns the maximum power magnitude
+  float getMaxPower() {
+    return cueMaxOffset * cueStrength;
   }
 }

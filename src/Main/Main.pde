@@ -57,7 +57,7 @@ void initWorld() {
   // Turn on collision listening
   box2d.listenForCollisions();
   
-  table = new PoolTable(0.8);
+  table = new PoolTable(0.7);
 }
 
 void update() {
