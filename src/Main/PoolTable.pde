@@ -3,8 +3,8 @@ class PoolTable {
   
   // --------------------------------------------- Fields begin
   // Location and size
-  PVector loc;
-  PVector size;
+  Vec2 loc;
+  Vec2 size;
   
   PImage tableGraphics;
 
@@ -44,7 +44,7 @@ class PoolTable {
     float cueX      = loc.x + size.x * 0.15; // The cue ball will be at the 15% X of the table
     
     // Place table boundaries
-    placeTableBoundaries(tableBevel, holeRadius);
+    placeTableBoundaries(tableBevel);
     
     // Place holes
     placeHoles(holeRadius, tableBevel);
@@ -61,42 +61,42 @@ class PoolTable {
     // From Wikipedia we know that the height is half the width
     // "The table's playing surface is approximately 9 by 4.5 feet (2.7 by 1.4 m)"
     float endWidth = relativeWidth * width;
-    size = new PVector(endWidth, endWidth * 1 / 2f);
+    size = new Vec2(endWidth, endWidth * 1 / 2f);
     
     float leftMargin = (width - size.x) / 2f;
     float upMargin = (height - size.y) / 2f;
-    loc = new PVector(leftMargin, upMargin);
+    loc = new Vec2(leftMargin, upMargin);
   }
   
   // The bevel acts as boundary thickness, hence it becomes is a 45º bevel
-  void placeTableBoundaries(float bevel, float holeRadius) {
+  void placeTableBoundaries(float bevel) {
     
     // All the table boundaries are displaced a distance = bevel from the corners
     // ----------------------------------------------------------------------------- Top
-    PVector boundaryLoc = new PVector(loc.x, loc.y - bevel);
+    Vec2 boundaryLoc = new Vec2(loc.x, loc.y - bevel);
     // The horizontal size is (table width - bevel) / 2
-    PVector horizontalSize = new PVector((size.x - bevel) / 2f, bevel);
+    Vec2 horizontalSize = new Vec2((size.x - bevel) / 2f, bevel);
     boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, TOP,  1)); // Trim right side
     
     // Move to the next table boundary by adding its size + the bevel
-    boundaryLoc.add(horizontalSize.x + bevel, 0);
+    boundaryLoc.addLocal(horizontalSize.x + bevel, 0);
     boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, TOP, -1)); // Trim left  side
     
     // ----------------------------------------------------------------------------- Bottom
     boundaryLoc.set(loc.x, loc.y + size.y);
     boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, BOTTOM,  1)); // Trim right side
     // Move to the next table boundary by adding its size + 2 times the bevel
-    boundaryLoc.add(horizontalSize.x + bevel, 0);
+    boundaryLoc.addLocal(horizontalSize.x + bevel, 0);
     boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, BOTTOM, -1)); // Trim left  side
     
     // ----------------------------------------------------------------------------- Left
     boundaryLoc.set(loc.x - bevel, loc.y);
     // The vertical size is the same as the table height, since there's only one
-    PVector verticalSize = new PVector(bevel, size.y);
+    Vec2 verticalSize = new Vec2(bevel, size.y);
     boundaries.add(new TableBoundary(boundaryLoc, verticalSize, LEFT));
     
     // ----------------------------------------------------------------------------- Right
-    boundaryLoc.add(size.x + bevel, 0);
+    boundaryLoc.addLocal(size.x + bevel, 0);
     boundaries.add(new TableBoundary(boundaryLoc, verticalSize, RIGHT));
   }
   
@@ -106,17 +106,18 @@ class PoolTable {
     float halfBevel = tableBevel / 2f;
     
     // Add the three upper holes, with the middle one displaced
-    holes.add(new Hole(new PVector(loc.x             , loc.y)            , holeRadius)); // (0.0, 0.0)
-    holes.add(new Hole(new PVector(loc.x + size.x / 2, loc.y - halfBevel), holeRadius)); // (0.5, 0.0)
-    holes.add(new Hole(new PVector(loc.x + size.x    , loc.y)            , holeRadius)); // (1.0, 0.0)
+    holes.add(new Hole(new Vec2(loc.x             , loc.y)            , holeRadius)); // (0.0, 0.0)
+    holes.add(new Hole(new Vec2(loc.x + size.x / 2, loc.y - halfBevel), holeRadius)); // (0.5, 0.0)
+    holes.add(new Hole(new Vec2(loc.x + size.x    , loc.y)            , holeRadius)); // (1.0, 0.0)
     
     // Add the three down holes, with the middle one displaced
-    holes.add(new Hole(new PVector(loc.x             , loc.y + size.y)            , holeRadius)); // (0.0, 1.0)
-    holes.add(new Hole(new PVector(loc.x + size.x / 2, loc.y + size.y + halfBevel), holeRadius)); // (0.5, 1.0)
-    holes.add(new Hole(new PVector(loc.x + size.x    , loc.y + size.y)            , holeRadius)); // (1.0, 1.0)
+    holes.add(new Hole(new Vec2(loc.x             , loc.y + size.y)            , holeRadius)); // (0.0, 1.0)
+    holes.add(new Hole(new Vec2(loc.x + size.x / 2, loc.y + size.y + halfBevel), holeRadius)); // (0.5, 1.0)
+    holes.add(new Hole(new Vec2(loc.x + size.x    , loc.y + size.y)            , holeRadius)); // (1.0, 1.0)
   }
   
   void placeBallsTriangle(float ballRadius, float x, float y) {
+    // Vec2 doesn't have rotate, hence it cannot be used here
     
     // Stores the available numbers, we'll pick a random one every time
     ArrayList<Integer> numbers = new ArrayList<Integer>(15);
@@ -125,13 +126,15 @@ class PoolTable {
     }
     
     // Generate vectors used for moving when placing the balls
-    PVector rightUp = new PVector(1, 0);
-    rightUp.rotate(-1f / 6f * PI); // -30º (up)
-    rightUp.mult(ballRadius * 2); // * 2 so the balls are touching each other
+    float theta = 1f / 6f * PI; // 30º
     
-    PVector rightDown = new PVector(1, 0);
-    rightDown.rotate(1f / 6f * PI); // 30º (down)
-    rightDown.mult(ballRadius * 2);
+    // Get the normal vector that is rotated 30º up (-theta = counterwise)
+    Vec2 rightUp = new Vec2(cos(-theta), sin(-theta));
+    rightUp.mulLocal(ballRadius * 2); // * 2 so the balls are touching each other
+    
+    // Get the normal vector that is rotated 30º down (theta = clockwise)
+    Vec2 rightDown = new Vec2(cos(theta), sin(theta));
+    rightDown.mulLocal(ballRadius * 2);
     
     // Both form a 60º angle, 30º going up and 30º going down
     // For each ball in a diagonal, we can fill another [4..1] in the other direction
@@ -144,13 +147,15 @@ class PoolTable {
     //     b   C
     //       c
     //         d
-    PVector loc = new PVector(x, y); // Initial point
+    Vec2 loc = new Vec2(x, y); // Initial point
     for (int i = 0; i < 5; i++) { // Going up
       for (int j = 0; j < 5 - i; j++) { // Going down
         
-        // Displacement for this IJ, add it to the initial point to get the ball loc
-        PVector ijLoc = PVector.add(PVector.mult(rightUp, i), PVector.mult(rightDown, j)); 
-        PVector ballLoc = PVector.add(loc, ijLoc);
+        // Displacement for this IJ
+        Vec2 ijLoc = rightUp.mul(i).add(rightDown.mul(j));
+        
+        // Add it to the initial point to get the final ball location
+        Vec2 ballLoc = loc.add(ijLoc);
         
         int numberIndex = int(random(numbers.size()));
         int poppedNumber = numbers.remove(numberIndex);
@@ -158,7 +163,7 @@ class PoolTable {
       }
     }
     
-    loc = new PVector(width / 2, height / 2);
+    loc = new Vec2(width / 2, height / 2);
     for (int i = 0; i < 3; i++) {
       loc.add(rightDown);
     }

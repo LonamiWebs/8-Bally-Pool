@@ -2,17 +2,17 @@
 // Represents a table hole
 class Hole {
 
-  PVector location;
+  Vec2 location;
   float radius;
 
-  Hole(PVector _location, float _radius) {
+  Hole(Vec2 _location, float _radius) {
     location = _location;
     radius = _radius;
   }
   
   boolean containsBall(Ball ball) {
     // Use distance squared for more performance
-    float distance = PVector.sub(ball.getLocationPVector(), location).magSq();
+    float distance = ball.getLocation().sub(location).lengthSquared();
     return distance < radius * radius;
   }
 

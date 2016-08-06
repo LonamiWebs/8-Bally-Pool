@@ -7,13 +7,13 @@ class TableBoundary {
 
   // Location starts at the top left corner
   // Position may be TOP, RIGHT, BOTTOM or LEFT
-  TableBoundary(PVector location, PVector size, int position) {
+  TableBoundary(Vec2 location, Vec2 size, int position) {
     // Add the box to the box2d world
     makeBody(location, size, position);
   }
 
   // See below to know what trim side means
-  TableBoundary(PVector location, PVector size, int position, int trimSide) {
+  TableBoundary(Vec2 location, Vec2 size, int position, int trimSide) {
     makeBody(location, size, position, trimSide);
   }
 
@@ -44,13 +44,13 @@ class TableBoundary {
   }
 
   // This function adds the fixed table boundary to the box2d world
-  void makeBody(PVector corner, PVector size, int position) {
+  void makeBody(Vec2 corner, Vec2 size, int position) {
     makeBody(corner, size, position, 0);
   }
   
   // Trim side can be -1, 0 or 1, meaning that 0 will not trim any horizontal side
   // By "trimming" a side we make the bevel half the size
-  void makeBody(PVector corner, PVector size, int position, int trimSide) {
+  void makeBody(Vec2 corner, Vec2 size, int position, int trimSide) {
 
     // Define a polygon (this is what we use for a rectangle)
     PolygonShape sd = new PolygonShape();

@@ -8,7 +8,7 @@ class Cue {
   
   float cueStrength = 5; // Affects to the hit velocity
   
-  PVector startLoc;
+  Vec2 startLoc;
   boolean hitting;
   
   void updateCueBall(Ball _cueBall) {
@@ -20,31 +20,30 @@ class Cue {
     // Determine the location of where we're going to hit
     // If we're hitting, it will be the saved starting location
     // Otherwise, it should point to the mouse
-    PVector location = hitting ? startLoc.copy() : new PVector(mouseX, mouseY);
+    Vec2 location = hitting ? new Vec2(startLoc) : new Vec2(mouseX, mouseY);
     
     // This vector represents the direction we'll use to move our cue along
-    PVector ballLoc = cueBall.getLocationPVector();
-    PVector cueToBall = PVector.sub(ballLoc, location);
+    Vec2 ballLoc = cueBall.getLocation();
+    Vec2 cueToBall = ballLoc.sub(location);
     
-    // Get the distance and normalize
-    float distance = cueToBall.mag();
-    cueToBall.div(distance); // Normalize without calculating the distance again
+    // Normalize the cue to ball vector so it can be scaled afterwards
+    cueToBall.normalize();
     
     // The end of our cue starts at the cue ball location
-    PVector end = cueBall.getLocationPVector();
+    Vec2 end = cueBall.getLocation();
     
     // Then we add our direction vector multiplied by the desired separation
     // Half the cue thickness because it acts as radius
-    end.add(PVector.mult(cueToBall, cueBall.radius + cueThickness / 2f));
+    end.addLocal(cueToBall.mul(cueBall.radius + cueThickness / 2f));
     
     // If we're hitting, increase the distance from the cue end to the ball
     // based on the offset hit distance
     if (hitting) {
-      end.add(PVector.mult(cueToBall, determineHitOffset()));
+      end.addLocal(cueToBall.mul(determineHitOffset()));
     }
     
     // The start of our cue is the end + the cue to ball vector * cue length
-    PVector start = PVector.add(end, PVector.mult(cueToBall, cueLength));
+    Vec2 start = end.add(cueToBall.mul(cueLength));
     
     strokeWeight(cueThickness);
     stroke(120, 100, 20);
@@ -64,13 +63,13 @@ class Cue {
       return 0;
     }
     
-    PVector ballLoc = cueBall.getLocationPVector();
-    PVector a = PVector.sub(new PVector(mouseX, mouseY), ballLoc);
-    PVector b = PVector.sub(startLoc,                    ballLoc);
+    Vec2 ballLoc = cueBall.getLocation();
+    Vec2 a = new Vec2(mouseX, mouseY).sub(ballLoc);
+    Vec2 b = startLoc.sub(ballLoc);
     
     b.normalize();
-    b.mult(a.dot(b));
-    PVector normalPoint = PVector.add(ballLoc, b);
+    b.mulLocal(Vec2.dot(a, b));
+    Vec2 normalPoint = ballLoc.add(b);
     
     // Check if the distance from the normal point to the cue ball
     // is larger than the distance from the starting location to the cue ball
@@ -79,10 +78,10 @@ class Cue {
     //
     // But this itself isn't enough (if we pull back far enough, the distance will be greater)
     // Hence, we also need to ensure that both signs are equal (going in the same direction)
-    PVector ballToNormal = PVector.sub(normalPoint, ballLoc);
-    PVector ballToStart = PVector.sub(startLoc, ballLoc);
-    float distNormal = ballToNormal.mag();
-    float distStart = ballToStart.mag();
+    Vec2 ballToNormal = normalPoint.sub(ballLoc);
+    Vec2 ballToStart = startLoc.sub(ballLoc);
+    float distNormal = ballToNormal.length();
+    float distStart = ballToStart.length();
     
     if (distNormal > distStart &&
         sign(ballToNormal.x) == sign(ballToStart.x) &&
@@ -96,7 +95,7 @@ class Cue {
   
   // Get ready to hit the ball
   void beginHit() {
-    startLoc = new PVector(mouseX, mouseY);
+    startLoc = new Vec2(mouseX, mouseY);
     hitting = true;
   }
   
@@ -105,8 +104,8 @@ class Cue {
   boolean endHit() {
     hitting = false;
     
-    PVector power = getPowerVector();
-    if (power.magSq() == 0) {
+    Vec2 power = getPowerVector();
+    if (power.lengthSquared() == 0) {
       return false;
     }
     cueBall.body.setLinearVelocity(box2d.vectorPixelsToWorld(power));
@@ -115,16 +114,16 @@ class Cue {
   
   // Returns a power vector, which indicates the strength that will be applied
   // to the ball hit
-  PVector getPowerVector() {
+  Vec2 getPowerVector() {
     float power = getPower();
     if (power == 0) { // If there's no power, return an empty vector
-      return new PVector();
+      return new Vec2();
     }
     
-    PVector ballLoc = cueBall.getLocationPVector();
-    PVector ballToLoc = PVector.sub(startLoc, ballLoc);
+    Vec2 ballLoc = cueBall.getLocation();
+    Vec2 ballToLoc = startLoc.sub(ballLoc);
     ballToLoc.normalize();
-    ballToLoc.mult(getPower());
+    ballToLoc.mulLocal(getPower());
     
     return ballToLoc;
   }

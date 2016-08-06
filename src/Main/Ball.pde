@@ -26,11 +26,6 @@ class Ball {
     makeBody(new Vec2(x, y), radius);
   }
   
-  PVector getLocationPVector() {
-    Vec2 loc = getLocation();
-    return new PVector(loc.x, loc.y);
-  }
-  
   Vec2 getLocation() {
     return box2d.getBodyPixelCoord(body);
   }
