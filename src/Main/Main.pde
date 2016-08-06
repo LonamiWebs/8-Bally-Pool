@@ -105,17 +105,17 @@ void keyPressed() {
         }
       break;
   }
-  if (key == 'r' || key == 'R') {
-  }
 }
 
 void mousePressed() {
+  table.mousePress();
   if (mouseButton == RIGHT) {
     quickAdvance = true;
   }
 }
 
 void mouseReleased() {
+  table.mouseRelease();
   if (mouseButton == RIGHT) {
     quickAdvance = false;
   }
@@ -180,5 +180,16 @@ void setVolume(AudioSample sample, float volume) {
   {
     volume = map(volume, 0, 1, -15, 0); // -15 is almost like unaudible, this does the trick
     sample.setGain(volume);
+  }
+}
+
+// Returns the sign of a given value
+int sign(float value) {
+  if (value > 0) {
+    return 1;
+  } else if (value < 0) {
+    return -1;
+  } else {
+    return 0;
   }
 }

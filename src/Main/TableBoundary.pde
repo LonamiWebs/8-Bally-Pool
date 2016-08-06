@@ -27,7 +27,6 @@ class TableBoundary {
     Fixture f = body.getFixtureList();
     PolygonShape ps = (PolygonShape) f.getShape();
 
-    rectMode(CENTER);
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(-a);
@@ -35,7 +34,6 @@ class TableBoundary {
     stroke(0);
     strokeWeight(2);
     beginShape();
-    //println(vertices.length);
     // For every vertex, convert to pixel vector
     for (int i = 0; i < ps.getVertexCount(); i++) {
       Vec2 v = box2d.vectorWorldToPixels(ps.getVertex(i));

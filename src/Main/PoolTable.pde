@@ -52,6 +52,9 @@ class PoolTable {
     // Place the cue ball and the balls triangle
     balls.add(new Ball(cueX, triangleY, ballRadius, 0)); // 0 = cue ball
     placeBallsTriangle(ballRadius, triangleX, triangleY);
+    
+    // Tell the cue that the cue ball is this one here
+    cue.updateCueBall(balls.get(0));
   }
   
   void setSizeAndLocation(float relativeWidth) {
@@ -141,7 +144,6 @@ class PoolTable {
     //     b   C
     //       c
     //         d
-    
     PVector loc = new PVector(x, y); // Initial point
     for (int i = 0; i < 5; i++) { // Going up
       for (int j = 0; j < 5 - i; j++) { // Going down
@@ -200,8 +202,6 @@ class PoolTable {
         balls.remove(i);
       }
     }
-    
-    cue.update(getCueBall());
   }
   
   Ball getCueBall() {
@@ -248,11 +248,24 @@ class PoolTable {
     }
     return true;
   }
+  // --------------------------------------------- Events begin
   
   // Should be called when the mouse is called
   void mouseClick() {
-    if (areBallsStill()) {
-      cue.hit(getCueBall());
+  }
+  
+  // Should be called when the mouse is pressed
+  void mousePress() {
+    if (mouseButton == LEFT && areBallsStill()) {
+      cue.beginHit();
     }
   }
+  
+  // Should be called when the mouse is pressed
+  void mouseRelease() {
+    if (mouseButton == LEFT && areBallsStill()) {
+      cue.endHit();
+    }
+  }
+  // --------------------------------------------- Events end
 }
