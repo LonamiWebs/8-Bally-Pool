@@ -14,6 +14,14 @@ class PoolTable {
   ArrayList<Ball> balls;
   
   Cue cue; // Cue stick
+  
+  // Determines whether the balls have been moving or not
+  boolean playing; // i.e. is the current player playing?
+  
+  // Keep track of the previous value to be able to
+  // perform a one-time check
+  boolean wasPlaying;
+  
   // --------------------------------------------- Fields end
   // --------------------------------------------- Constructor begin
   
@@ -207,6 +215,8 @@ class PoolTable {
         balls.remove(i);
       }
     }
+    
+    playing = !areBallsStill();
   }
   
   Ball getCueBall() {
@@ -252,6 +262,18 @@ class PoolTable {
       }
     }
     return true;
+  }
+  
+  // Should the turn be changed to the next player?
+  // If yes, the state is cleared after checked!
+  boolean shouldChangeTurn() {
+    if (wasPlaying && !playing) {
+      wasPlaying = false; // Clear state
+      return true;
+    } else {
+      wasPlaying = playing;
+      return false;
+    }
   }
   // --------------------------------------------- Events begin
   

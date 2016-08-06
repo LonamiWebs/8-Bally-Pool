@@ -96,7 +96,7 @@ class Ball {
     fd.shape = sd;
     // Parameters that affect physics
     // http://billiards.colostate.edu/threads/physics.html
-    fd.density = 1;
+    fd.density = 2;
     fd.restitution = 0.95;
 
     // Define the body and make it from the shape

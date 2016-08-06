@@ -22,6 +22,9 @@ AudioSample[] woodHitSamples; // Store multiple samples for the wood hits
 // Global volume value (0 = 0%, 1 = 100%)
 float globalVolume = 1;
 
+// Players
+Player player1, player2;
+
 void settings() {
   size(1000, 640);
 }
@@ -57,13 +60,22 @@ void initWorld() {
   // Turn on collision listening
   box2d.listenForCollisions();
   
+  // Initialize table and players
   table = new PoolTable(0.7);
+  player1 = new Player(1, new Vec2(0.2, 0.1));
+  player2 = new Player(2, new Vec2(0.2, 0.1));
 }
 
 void update() {
   // We must always step through time!
   box2d.step();
   table.update();
+  
+  // Toggle their turns
+  if (table.shouldChangeTurn()) {
+    player1.myTurn = !player1.myTurn;
+    player2.myTurn = !player2.myTurn;
+  }
 }
 
 void draw() {
@@ -80,11 +92,13 @@ void draw() {
   }
   
   table.display();
+  player1.display();
+  player2.display();
   
   fill(0);
-  if (table.areBallsStill()) {
-    text("You can now use the cue", 10, 20);
-  } else {
+  textSize(12);
+  textAlign(LEFT, TOP);
+  if (!table.areBallsStill()) {
     text("Hold the right mouse button to quickly advance", 10, height - 60);
     text("Press T to early Terminate this turn", 10, height - 40);
   }

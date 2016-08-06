@@ -13,6 +13,10 @@ class CuePowerDisplay {
   float stepCount = 50;
   float margin = 20;
   
+  // Determines the low and high color
+  color lowColor = color(0, 255, 0);
+  color highColor = color(255, 0, 0);
+  
   CuePowerDisplay(float relativeHeight) {
     
     maxHeight = relativeHeight * height;
@@ -51,9 +55,7 @@ class CuePowerDisplay {
     rect(emptySteps.x, emptySteps.y, stepSize.x, stepSize.y * (stepCount - steps));
   }
   
-  color lowColor = color(0, 255, 0);
-  color highColor = color(255, 0, 0);
-  
+  // Gets an interpolated color for the current step
   color getColor(int step) {
     float r = map(step, 0, stepCount, red(lowColor), red(highColor));
     float g = map(step, 0, stepCount, green(lowColor), green(highColor));
