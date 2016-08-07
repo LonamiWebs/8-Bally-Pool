@@ -10,7 +10,9 @@ import org.jbox2d.dynamics.contacts.*;
 // A reference to our box2d world
 Box2DProcessing box2d;
 
+// Keep track of the table and the player manager
 PoolTable table;
+PlayerManager playerManager;
 
 // If quick advance is enabled, we'll calculate more steps per frame
 boolean quickAdvance;
@@ -22,14 +24,12 @@ AudioSample[] woodHitSamples; // Store multiple samples for the wood hits
 // Global volume value (0 = 0%, 1 = 100%)
 float globalVolume = 1;
 
-// Players
-Player player1, player2;
-
 void settings() {
   size(1000, 640);
 }
 
 void setup() {
+  print("Loading... ");
   surface.setTitle("8-Ball Pool");
 
   // Initialize our box2d world (and our table)
@@ -47,6 +47,7 @@ void setup() {
   for (int i = 0; i < woodHitSamples.length; i++) {
     woodHitSamples[i] = minim.loadSample("audio/woodhit_" + (i + 1) + ".aiff", 512); // 512 buffer size
   }
+  println("Done!");
 }
 
 void initWorld() {
@@ -60,22 +61,15 @@ void initWorld() {
   // Turn on collision listening
   box2d.listenForCollisions();
   
-  // Initialize table and players
-  table = new PoolTable(0.7);
-  player1 = new Player(1, new Vec2(0.2, 0.1));
-  player2 = new Player(2, new Vec2(0.2, 0.1));
+  // Initialize table and players (those floats are sizes)
+  table = new PoolTable(0.6);
+  playerManager = new PlayerManager(0.3, 0.13); 
 }
 
 void update() {
   // We must always step through time!
   box2d.step();
   table.update();
-  
-  // Toggle their turns
-  if (table.shouldChangeTurn()) {
-    player1.myTurn = !player1.myTurn;
-    player2.myTurn = !player2.myTurn;
-  }
 }
 
 void draw() {
@@ -92,8 +86,7 @@ void draw() {
   }
   
   table.display();
-  player1.display();
-  player2.display();
+  playerManager.display();
   
   fill(0);
   textSize(12);
@@ -103,81 +96,6 @@ void draw() {
     text("Press T to early Terminate this turn", 10, height - 40);
   }
   text("Press R to Reset", 10, height - 20);
-}
-
-void keyPressed() {
-  switch (key) {
-    case 'r':
-    case 'R':
-      initWorld();
-      break;
-    
-    case 't':
-    case 'T':
-        while (!table.areBallsStill()) {
-          update();
-        }
-      break;
-  }
-}
-
-void mousePressed() {
-  table.mousePress();
-  if (mouseButton == RIGHT) {
-    quickAdvance = true;
-  }
-}
-
-void mouseReleased() {
-  table.mouseRelease();
-  if (mouseButton == RIGHT) {
-    quickAdvance = false;
-  }
-}
-
-void mouseClicked() {
-  if (mouseButton == LEFT) {
-    table.mouseClick();
-  }
-}
-
-void beginContact(Contact cp) {
-  // Get both fixtures
-  Fixture f1 = cp.getFixtureA();
-  Fixture f2 = cp.getFixtureB();
-  
-  // Get both bodies
-  Body b1 = f1.getBody();
-  Body b2 = f2.getBody();
-
-  // Get our objects that reference these bodies
-  Object o1 = b1.getUserData();
-  Object o2 = b2.getUserData();
-  
-  // Get the velocity magnitude, and find the highest
-  float mag1 = b1.getLinearVelocity().length();
-  float mag2 = b2.getLinearVelocity().length();
-  float mag = max(mag1, mag2);
-  
-  // Use the highest velocity to determine the volume (between 0-1)
-  float vol = constrain(map(mag, 0, 10, 0, 1), 0, 1);
-  
-  // If both objects are balls, play a random ball hit sound
-  if (o1.getClass() == Ball.class && o2.getClass() == Ball.class) {
-    
-    int n = int(random(ballHitSamples.length)); // Get a random sample
-    setVolume(ballHitSamples[n], vol); // Set the volume depending its velocity
-    ballHitSamples[n].trigger(); // Play it
-    
-  } else { // One must have been wood
-    
-    int n = int(random(woodHitSamples.length)); // Get a random sample
-    setVolume(woodHitSamples[n], vol); // Set the volume depending its velocity
-    woodHitSamples[n].trigger(); // Play it
-  }
-}
-
-void endContact(Contact cp) {
 }
 
 void setVolume(AudioSample sample, float volume) {

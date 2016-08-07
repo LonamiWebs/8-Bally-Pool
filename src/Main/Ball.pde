@@ -30,9 +30,13 @@ class Ball {
     return box2d.getBodyPixelCoord(body);
   }
 
-  // This function marks the ball as dead
-  void kill() {
+  // This function marks the ball as dying
+  // Returns true if it was alive, false otherwise
+  boolean kill() {
+    boolean wasDying = isDying;
     isDying = true; // Mark the ball as dying for it to be animated
+    
+    return !wasDying; // Return true if it was alive
   }
   
   // Determines whether the ball is dead yet or not
@@ -83,6 +87,11 @@ class Ball {
     
     popMatrix();
   }
+  
+  private float getDensity(float radius, float mass) {
+    float area = PI * sq(radius);
+    return mass / area;
+  }
 
   // This function adds the ball to the box2d world
   void makeBody(Vec2 center, float radius) {
@@ -96,7 +105,7 @@ class Ball {
     fd.shape = sd;
     // Parameters that affect physics
     // http://billiards.colostate.edu/threads/physics.html
-    fd.density = 2;
+    fd.density = getDensity(sd.m_radius, 0.1701); // 6 oz = 170.1g 
     fd.restitution = 0.95;
 
     // Define the body and make it from the shape
@@ -104,8 +113,8 @@ class Ball {
     bd.type = BodyType.DYNAMIC;
     bd.position.set(box2d.coordPixelsToWorld(center));
     // Parameters that affect physics
-    bd.linearDamping = 0.5;
-    bd.angularDamping = 0.5;
+    bd.linearDamping = 0.77; // Value based on other games
+    bd.angularDamping = 0.77;
 
     body = box2d.createBody(bd);
     body.createFixture(fd);

@@ -3,8 +3,8 @@ class PoolTable {
   
   // --------------------------------------------- Fields begin
   // Location and size
-  Vec2 loc;
-  Vec2 size;
+  Area area;
+  float ballsRadius;
   
   PImage tableGraphics;
 
@@ -30,11 +30,11 @@ class PoolTable {
   PoolTable(float relativeWidth) {
     
     // Set table size and location
-    setSizeAndLocation(relativeWidth);
+    setArea(relativeWidth);
     
     // Create the graphics
     tableGraphics = loadImage("img/table.png");
-    tableGraphics.resize(int(size.x), int(size.y)); // Resize once to avoid scaling on display()
+    tableGraphics.resize(int(area.w), int(area.h)); // Resize once to avoid scaling on display()
   
     // Create ArrayLists and cue stick
     boundaries = new ArrayList<TableBoundary>();
@@ -43,13 +43,13 @@ class PoolTable {
     cue = new Cue();
   
     // Determine some values
-    float ballRadius = getBallRadius(relativeWidth);
-    float holeRadius = getHoleRadius(ballRadius);
+    setBallsRadius(relativeWidth);
+    float holeRadius = getHoleRadius();
     float tableBevel = holeRadius; // Use holeRadius as tableBevel for dimensions to fit
     
     float triangleY = height / 2;
-    float triangleX = loc.x + size.x * 0.70; // The triangle will be at the 70% X of the table
-    float cueX      = loc.x + size.x * 0.15; // The cue ball will be at the 15% X of the table
+    float triangleX = area.x + area.w * 0.70; // The triangle will be at the 70% X of the table
+    float cueX      = area.x + area.w * 0.15; // The cue ball will be at the 15% X of the table
     
     // Place table boundaries
     placeTableBoundaries(tableBevel);
@@ -58,22 +58,23 @@ class PoolTable {
     placeHoles(holeRadius, tableBevel);
     
     // Place the cue ball and the balls triangle
-    balls.add(new Ball(cueX, triangleY, ballRadius, 0)); // 0 = cue ball
-    placeBallsTriangle(ballRadius, triangleX, triangleY);
+    balls.add(new Ball(cueX, triangleY, ballsRadius, 0)); // 0 = cue ball
+    placeBallsTriangle(ballsRadius, triangleX, triangleY);
     
     // Tell the cue that the cue ball is this one here
     cue.updateCueBall(balls.get(0));
   }
   
-  void setSizeAndLocation(float relativeWidth) {
+  void setArea(float relativeWidth) {
+    area = new Area();
     // From Wikipedia we know that the height is half the width
     // "The table's playing surface is approximately 9 by 4.5 feet (2.7 by 1.4 m)"
-    float endWidth = relativeWidth * width;
-    size = new Vec2(endWidth, endWidth * 1 / 2f);
+    area.w = relativeWidth * width;
+    area.h = area.w / 2f;
     
-    float leftMargin = (width - size.x) / 2f;
-    float upMargin = (height - size.y) / 2f;
-    loc = new Vec2(leftMargin, upMargin);
+    // Divide remaining space by 2 to leave margin both up and down
+    area.x = (width - area.w) / 2f; // Left margin
+    area.y = (height - area.h) / 2f; // Top margin
   }
   
   // The bevel acts as boundary thickness, hence it becomes is a 45º bevel
@@ -81,9 +82,9 @@ class PoolTable {
     
     // All the table boundaries are displaced a distance = bevel from the corners
     // ----------------------------------------------------------------------------- Top
-    Vec2 boundaryLoc = new Vec2(loc.x, loc.y - bevel);
+    Vec2 boundaryLoc = new Vec2(area.x, area.y - bevel);
     // The horizontal size is (table width - bevel) / 2
-    Vec2 horizontalSize = new Vec2((size.x - bevel) / 2f, bevel);
+    Vec2 horizontalSize = new Vec2((area.w - bevel) / 2f, bevel);
     boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, TOP,  1)); // Trim right side
     
     // Move to the next table boundary by adding its size + the bevel
@@ -91,20 +92,20 @@ class PoolTable {
     boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, TOP, -1)); // Trim left  side
     
     // ----------------------------------------------------------------------------- Bottom
-    boundaryLoc.set(loc.x, loc.y + size.y);
+    boundaryLoc.set(area.x, area.y + area.h);
     boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, BOTTOM,  1)); // Trim right side
     // Move to the next table boundary by adding its size + 2 times the bevel
     boundaryLoc.addLocal(horizontalSize.x + bevel, 0);
     boundaries.add(new TableBoundary(boundaryLoc, horizontalSize, BOTTOM, -1)); // Trim left  side
     
     // ----------------------------------------------------------------------------- Left
-    boundaryLoc.set(loc.x - bevel, loc.y);
+    boundaryLoc.set(area.x - bevel, area.y);
     // The vertical size is the same as the table height, since there's only one
-    Vec2 verticalSize = new Vec2(bevel, size.y);
+    Vec2 verticalSize = new Vec2(bevel, area.h);
     boundaries.add(new TableBoundary(boundaryLoc, verticalSize, LEFT));
     
     // ----------------------------------------------------------------------------- Right
-    boundaryLoc.addLocal(size.x + bevel, 0);
+    boundaryLoc.addLocal(area.w + bevel, 0);
     boundaries.add(new TableBoundary(boundaryLoc, verticalSize, RIGHT));
   }
   
@@ -114,14 +115,14 @@ class PoolTable {
     float halfBevel = tableBevel / 2f;
     
     // Add the three upper holes, with the middle one displaced
-    holes.add(new Hole(new Vec2(loc.x             , loc.y)            , holeRadius)); // (0.0, 0.0)
-    holes.add(new Hole(new Vec2(loc.x + size.x / 2, loc.y - halfBevel), holeRadius)); // (0.5, 0.0)
-    holes.add(new Hole(new Vec2(loc.x + size.x    , loc.y)            , holeRadius)); // (1.0, 0.0)
+    holes.add(new Hole(new Vec2(area.x             , area.y)            , holeRadius)); // (0.0, 0.0)
+    holes.add(new Hole(new Vec2(area.x + area.w / 2, area.y - halfBevel), holeRadius)); // (0.5, 0.0)
+    holes.add(new Hole(new Vec2(area.x + area.w    , area.y)            , holeRadius)); // (1.0, 0.0)
     
     // Add the three down holes, with the middle one displaced
-    holes.add(new Hole(new Vec2(loc.x             , loc.y + size.y)            , holeRadius)); // (0.0, 1.0)
-    holes.add(new Hole(new Vec2(loc.x + size.x / 2, loc.y + size.y + halfBevel), holeRadius)); // (0.5, 1.0)
-    holes.add(new Hole(new Vec2(loc.x + size.x    , loc.y + size.y)            , holeRadius)); // (1.0, 1.0)
+    holes.add(new Hole(new Vec2(area.x             , area.y + area.h)            , holeRadius)); // (0.0, 1.0)
+    holes.add(new Hole(new Vec2(area.x + area.w / 2, area.y + area.h + halfBevel), holeRadius)); // (0.5, 1.0)
+    holes.add(new Hole(new Vec2(area.x + area.w    , area.y + area.h)            , holeRadius)); // (1.0, 1.0)
   }
   
   void placeBallsTriangle(float ballRadius, float x, float y) {
@@ -177,17 +178,17 @@ class PoolTable {
     }
   }
   
-  // Returns the real radius for the ball to be displayed
-  float getBallRadius(float relativeTableWidth) {
+  // Sets the real radius that the balls will use
+  void setBallsRadius(float relativeTableWidth) {
     // From wikipedia: "The holes are spaced slightly closer than the regulation ball width of 2 1/2 inch (57.15 mm)"
     // Hence, relativeWidth      x           57.15 * relativeWidth
     //        ------------- = ------- -> x = --------------------- = relativeWidth * 0.021166667
     //           2700mm       57.15mm               2700mm
-    return relativeTableWidth * width * 0.021166667;
+    ballsRadius = relativeTableWidth * width * 0.021166667;
   }
   
-  // Returns the real radius for the ball holes to be displayed
-  float getHoleRadius(float ballRadius) { return ballRadius * 2f; }
+  // Returns the real radius for the ball holes to be displayed based on the balls radius
+  float getHoleRadius() { return ballsRadius * 2f; }
   
   // --------------------------------------------- Constructor end
   // --------------------------------------------- Update begin
@@ -200,7 +201,9 @@ class PoolTable {
         
         // If the hole contains the ball, remove it from both box2d world
         if (hole.containsBall(ball)) {
-          ball.kill();
+          if (ball.kill()) { // If we killed the ball, pot it!
+            playerManager.potBall(ball.number);
+          }
         }
       }
     }
@@ -217,6 +220,11 @@ class PoolTable {
     }
     
     playing = !areBallsStill();
+    
+    // Toggle the player turns if necessary
+    if (shouldChangeTurn()) {
+      playerManager.toggleTurns();
+    }
   }
   
   Ball getCueBall() {
@@ -232,7 +240,7 @@ class PoolTable {
   void display() {
     
     imageMode(CORNER);
-    image(tableGraphics, loc.x, loc.y);
+    image(tableGraphics, area.x, area.y);
   
     // Display all the holes
     for (Hole hole : holes) {
@@ -249,6 +257,7 @@ class PoolTable {
       b.display();
     }
     
+    // Only display the cue if all the balls are still
     if (areBallsStill()) {
       cue.display();
     }
@@ -275,6 +284,17 @@ class PoolTable {
       return false;
     }
   }
+  
+  // Returns the first quarter of the area of the table
+  Area getFirstQuarter() {
+    return new Area(area.x, area.y, area.w / 4f, area.h);
+  }
+  
+  // Returns the area of the table
+  Area getArea() {
+    return area.copy();
+  }
+  
   // --------------------------------------------- Events begin
   
   // Should be called when the mouse is called
