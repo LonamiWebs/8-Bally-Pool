@@ -18,23 +18,21 @@ void keyPressed() {
   }
 }
 
+void mouseClicked() {
+  playerManager.mouseClick();
+}
+
 void mousePressed() {
-  table.mousePress();
+  playerManager.mousePress();
   if (mouseButton == RIGHT) {
     quickAdvance = true;
   }
 }
 
 void mouseReleased() {
-  table.mouseRelease();
+  playerManager.mouseRelease();
   if (mouseButton == RIGHT) {
     quickAdvance = false;
-  }
-}
-
-void mouseClicked() {
-  if (mouseButton == LEFT) {
-    table.mouseClick();
   }
 }
 

@@ -3,8 +3,6 @@ class PlayerManager {
   
   Player player1, player2;
   
-  int winner;
-  
   PlayerManager(float relativeWidth, float relativeHeight) {
     
     player1 = new Player(1, new Vec2(relativeWidth, relativeHeight));
@@ -13,8 +11,10 @@ class PlayerManager {
     float whoFirst = random(1); // Who goes first? 50% each
     if (whoFirst < 0.5) {
       player1.myTurn = true;
+      player1.setFreePlaceArea(table.getFirstQuarter());
     } else {
       player2.myTurn = true;
+      player2.setFreePlaceArea(table.getFirstQuarter());
     }
   }
   
@@ -25,10 +25,6 @@ class PlayerManager {
   }
   
   void potBall(int ballNumber) {
-    if (winner > 0) { // We already won, do nothing
-      return;
-    }
-    
     // Get the current and other player for easy-access
     Player currentPlayer = player1.myTurn ? player1 : player2;
     Player otherPlayer   = player1.myTurn ? player2 : player1;
@@ -36,7 +32,7 @@ class PlayerManager {
     // Check if the potted ball was the cue ball
     if (ballNumber == 0) {
       // Those are bad news, the other player can now freely place the ball
-      otherPlayer._freePlace = true;
+      otherPlayer.setFreePlaceArea(table.getArea());
       
       // Early terminate, no need for more checks
       return;
@@ -46,11 +42,13 @@ class PlayerManager {
     if (ballNumber == 8) {
       if (currentPlayer.pottedBalls.size() == 7) {
         // He had to pot it! He wins!
-        winner = currentPlayer.number;
+        currentPlayer.won = true;
+        otherPlayer.lost = true;
         
       } else { // L O S E R
         // The other player wins!
-        winner = otherPlayer.number;
+        currentPlayer.lost = true;
+        otherPlayer.won = true;
       
         // Early terminate, no need for more checks
         return;
@@ -96,4 +94,34 @@ class PlayerManager {
     player1.display();
     player2.display();
   }
+  
+  // --------------------------------------------- Events begin
+  
+  // Should be called when the mouse is clicked
+  void mouseClick() {
+    if (player1.myTurn) {
+      player1.mouseClick();
+    } else {
+      player2.mouseClick();
+    }
+  }
+  
+  // Should be called when the mouse is pressed
+  void mousePress() {
+    if (player1.myTurn) {
+      player1.mousePress();
+    } else {
+      player2.mousePress();
+    }
+  }
+  
+  // Should be called when the mouse is released
+  void mouseRelease() {
+    if (player1.myTurn) {
+      player1.mouseRelease();
+    } else {
+      player2.mouseRelease();
+    }
+  }
+  // --------------------------------------------- Events end
 }

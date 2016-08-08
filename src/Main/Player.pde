@@ -5,8 +5,7 @@ class Player {
   
   ArrayList<BallImage> pottedBalls;
   
-  Vec2 location;
-  Vec2 size;
+  Area area;
   
   float margin = 10;
   
@@ -24,19 +23,29 @@ class Player {
   boolean solids;
   boolean strips;
   
+  // Did we lose or win?
+  boolean won;
+  boolean lost;
+  
+  Cue cue;
+  BallImage cueBallDisplay; // Used when we can freely place
+  
   Player(int _number, Vec2 relativeSize) {
     
     number = _number;
     assert(number == 1 || number == 2);
     
-    size = new Vec2(relativeSize.x * width, relativeSize.y * height);
+    area = new Area();
+    area.resize(relativeSize.x * width, relativeSize.y * height);
     if (number == 1) {
-      location = new Vec2(margin, margin);
+      area.locate(margin, margin);
     } else {
-      location = new Vec2(width - margin - size.x, margin);
+      area.locate(width - margin - area.w, margin);
     }
     
     pottedBalls = new ArrayList<BallImage>();
+    
+    cue = new Cue();
   }
   
   // Which balls should this player pot?
@@ -51,35 +60,95 @@ class Player {
   void setFreePlaceArea(Area area) {
     _freePlace = true;
     freePlaceArea = area;
+    cueBallDisplay = new BallImage(12, 0); // Arbitrary radius
+  }
+  
+  void clearFreePlaceArea() {
+    _freePlace = false;
+    freePlaceArea = null;
+    cueBallDisplay = null;
   }
   
   void display() {
     
+    // Display player info 
     stroke(0);
     strokeWeight(1);
     fill(250, 240, 160, myTurn ? 255 : 100);
-    rect(location.x, location.y, size.x, size.y);
+    area.display();
     
     fill(0);
-    textAlign(LEFT, TOP);
-    textSize(nameHeight);
-    text("Player " + number, location.x + margin, location.y + margin);
+    cursor.locate(area.x + margin, area.y + margin);
+    cursor.type("Player " + number, nameHeight);
+    cursor.move(20, 0);
+    cursor.setTextSize(descHeight); // The next text will be description
     
+    if (won) {
+      cursor.typeLine("- You WON!!");
+    } else if (lost) {
+      cursor.typeLine("- You lost man :(");
+    }
     
-    textAlign(RIGHT, TOP);
-    textSize(descHeight);
     if (solids) {
-      text("You are solids", location.x + size.x - margin, location.y + margin);
+      cursor.typeLine("- You are solids");
     } else if (strips) {
-      text("You are strips", location.x + size.x - margin, location.y + margin);
+      cursor.typeLine("- You are strips");
     }
     
     textAlign(LEFT, TOP);
     for (int i = 0; i < pottedBalls.size(); i++) {
       BallImage ball = pottedBalls.get(i);
-      float ballX = location.x + margin + ball.diameter * (i + 1);
-      float ballY = location.y + margin + ball.diameter + nameHeight;
+      float ballX = area.x + margin + ball.diameter * (i + 1);
+      float ballY = area.y + margin + ball.diameter + nameHeight;
       ball.display(ballX, ballY);
     }
+    
+    // If the cue ball isn't null (i.e. we're not placing), display cue
+    if (table.cueBallAlive() && myTurn && table.areBallsStill()) {
+      cue.display();
+    }
+    
+    // If we're free placing, display the new ball place
+    if (_freePlace) {
+      cursor.typeLine("- You have the cue ball in hand");
+      
+      noStroke();
+      fill(255, 255, 255, 40);
+      freePlaceArea.display();
+      
+      if (freePlaceArea.contains(mouseX, mouseY)) {
+        cueBallDisplay.display(mouseX, mouseY);
+      }
+    }
   }
+  
+  // --------------------------------------------- Events begin
+  
+  // Should be called when the mouse is pressed
+  void mouseClick() {
+    
+    // Check whether we can or not place the cue ball
+    if (_freePlace && freePlaceArea.contains(mouseX, mouseY)) {
+      if (table.canPlaceBall(mouseX, mouseY)) {
+        table.placeCueBall(mouseX, mouseY);
+        clearFreePlaceArea();
+      }
+    }
+  }
+  
+  // Should be called when the mouse is pressed
+  void mousePress() {
+    if (table.cueBallAlive() && mouseButton == LEFT && table.areBallsStill()) {
+      cue.beginHit();
+    }
+  }
+  
+  // Should be called when the mouse is pressed
+  void mouseRelease() {
+    if (table.cueBallAlive() && mouseButton == LEFT && table.areBallsStill()) {
+      cue.endHit();
+    }
+  }
+  // --------------------------------------------- Events end
+  
 }

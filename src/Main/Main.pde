@@ -10,9 +10,11 @@ import org.jbox2d.dynamics.contacts.*;
 // A reference to our box2d world
 Box2DProcessing box2d;
 
-// Keep track of the table and the player manager
+// Keep track of the table, the player manager and the cue ball
 PoolTable table;
 PlayerManager playerManager;
+
+Cursor cursor; // For writting text to screen
 
 // If quick advance is enabled, we'll calculate more steps per frame
 boolean quickAdvance;
@@ -22,7 +24,7 @@ AudioSample[] ballHitSamples; // Store multiple samples for the ball hits
 AudioSample[] woodHitSamples; // Store multiple samples for the wood hits
 
 // Global volume value (0 = 0%, 1 = 100%)
-float globalVolume = 1;
+float globalVolume = 0;
 
 void settings() {
   size(1000, 640);
@@ -47,6 +49,10 @@ void setup() {
   for (int i = 0; i < woodHitSamples.length; i++) {
     woodHitSamples[i] = minim.loadSample("audio/woodhit_" + (i + 1) + ".aiff", 512); // 512 buffer size
   }
+  
+  // Load cursor for writing text
+  cursor = new Cursor();
+  
   println("Done!");
 }
 
@@ -89,13 +95,14 @@ void draw() {
   playerManager.display();
   
   fill(0);
-  textSize(12);
-  textAlign(LEFT, TOP);
+  cursor.locate(10, height - 20);
+  cursor.setTextSize(12);
+  cursor.typePrevLine("Press R to Reset");
+  
   if (!table.areBallsStill()) {
-    text("Hold the right mouse button to quickly advance", 10, height - 60);
-    text("Press T to early Terminate this turn", 10, height - 40);
+    cursor.typePrevLine("Press T to early Terminate this turn");
+    cursor.type("Hold the right mouse button to quickly advance");
   }
-  text("Press R to Reset", 10, height - 20);
 }
 
 void setVolume(AudioSample sample, float volume) {
@@ -110,7 +117,7 @@ void setVolume(AudioSample sample, float volume) {
   }
   else if (sample.hasControl(Controller.GAIN)) // "Volume" fallback
   {
-    volume = map(volume, 0, 1, -15, 0); // -15 is almost like unaudible, this does the trick
+    volume = map(volume, 0, 1, -30, 0); // -30 is almost like unaudible, this does the trick
     sample.setGain(volume);
   }
 }

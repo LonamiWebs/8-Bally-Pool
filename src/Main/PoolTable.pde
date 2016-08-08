@@ -4,7 +4,6 @@ class PoolTable {
   // --------------------------------------------- Fields begin
   // Location and size
   Area area;
-  float ballsRadius;
   
   PImage tableGraphics;
 
@@ -12,8 +11,6 @@ class PoolTable {
   ArrayList<TableBoundary> boundaries; // Track table
   ArrayList<Hole> holes;
   ArrayList<Ball> balls;
-  
-  Cue cue; // Cue stick
   
   // Determines whether the balls have been moving or not
   boolean playing; // i.e. is the current player playing?
@@ -36,20 +33,17 @@ class PoolTable {
     tableGraphics = loadImage("img/table.png");
     tableGraphics.resize(int(area.w), int(area.h)); // Resize once to avoid scaling on display()
   
-    // Create ArrayLists and cue stick
+    // Create ArrayLists
     boundaries = new ArrayList<TableBoundary>();
     holes = new ArrayList<Hole>();
     balls = new ArrayList<Ball>();
-    cue = new Cue();
   
     // Determine some values
-    setBallsRadius(relativeWidth);
     float holeRadius = getHoleRadius();
     float tableBevel = holeRadius; // Use holeRadius as tableBevel for dimensions to fit
     
     float triangleY = height / 2;
     float triangleX = area.x + area.w * 0.70; // The triangle will be at the 70% X of the table
-    float cueX      = area.x + area.w * 0.15; // The cue ball will be at the 15% X of the table
     
     // Place table boundaries
     placeTableBoundaries(tableBevel);
@@ -57,12 +51,8 @@ class PoolTable {
     // Place holes
     placeHoles(holeRadius, tableBevel);
     
-    // Place the cue ball and the balls triangle
-    balls.add(new Ball(cueX, triangleY, ballsRadius, 0)); // 0 = cue ball
-    placeBallsTriangle(ballsRadius, triangleX, triangleY);
-    
-    // Tell the cue that the cue ball is this one here
-    cue.updateCueBall(balls.get(0));
+    // Place the balls triangle
+    placeBallsTriangle(getBallRadius(), triangleX, triangleY);
   }
   
   void setArea(float relativeWidth) {
@@ -179,16 +169,16 @@ class PoolTable {
   }
   
   // Sets the real radius that the balls will use
-  void setBallsRadius(float relativeTableWidth) {
+  float getBallRadius() {
     // From wikipedia: "The holes are spaced slightly closer than the regulation ball width of 2 1/2 inch (57.15 mm)"
     // Hence, relativeWidth      x           57.15 * relativeWidth
     //        ------------- = ------- -> x = --------------------- = relativeWidth * 0.021166667
     //           2700mm       57.15mm               2700mm
-    ballsRadius = relativeTableWidth * width * 0.021166667;
+    return area.w * 0.021166667;
   }
   
   // Returns the real radius for the ball holes to be displayed based on the balls radius
-  float getHoleRadius() { return ballsRadius * 2f; }
+  float getHoleRadius() { return getBallRadius() * 2f; }
   
   // --------------------------------------------- Constructor end
   // --------------------------------------------- Update begin
@@ -228,12 +218,17 @@ class PoolTable {
   }
   
   Ball getCueBall() {
-    for (Ball ball : balls) {
-      if (ball.number == 0) {
-        return ball;
-      }
+    if (balls.size() == 0) {
+      return null; // Empty, the cue ball is not here
     }
-    return null;
+    
+    // The cue ball is always the last added
+    Ball ball = balls.get(balls.size() - 1);
+    if (ball.number != 0) {
+      return null; // The cue ball is not here
+    }
+    
+    return ball;
   }
   // --------------------------------------------- Update end
   // --------------------------------------------- Display begin
@@ -256,11 +251,6 @@ class PoolTable {
     for (Ball b : balls) {
       b.display();
     }
-    
-    // Only display the cue if all the balls are still
-    if (areBallsStill()) {
-      cue.display();
-    }
   }
   // --------------------------------------------- Display end
   
@@ -271,6 +261,16 @@ class PoolTable {
       }
     }
     return true;
+  }
+  
+  // Determines whether the cue ball is alive or not
+  boolean cueBallAlive() {
+    for (Ball b : balls) {
+      if (b.number == 0) { // TODO actually, isn't the cue ball always the last?
+        return true;
+      }
+    }
+    return false;
   }
   
   // Should the turn be changed to the next player?
@@ -286,33 +286,46 @@ class PoolTable {
   }
   
   // Returns the first quarter of the area of the table
+  // Also trims the borders by the ball radius
   Area getFirstQuarter() {
-    return new Area(area.x, area.y, area.w / 4f, area.h);
+    float radius = getBallRadius();
+    return new Area(area.x + radius,
+                    area.y + radius,
+                    area.w / 4f - radius * 2,
+                    area.h - radius * 2);
   }
   
   // Returns the area of the table
+  // Also trims the borders by the ball radius
   Area getArea() {
-    return area.copy();
+    float radius = getBallRadius();
+    return new Area(area.x + radius,
+                    area.y + radius,
+                    area.w - radius * 2,
+                    area.h - radius * 2);
   }
   
-  // --------------------------------------------- Events begin
-  
-  // Should be called when the mouse is called
-  void mouseClick() {
-  }
-  
-  // Should be called when the mouse is pressed
-  void mousePress() {
-    if (mouseButton == LEFT && areBallsStill()) {
-      cue.beginHit();
+  // Determines whether a ball can be placed or not in the given location
+  boolean canPlaceBall(float x, float y) {
+    
+    float diameter = getBallRadius() * 2;
+    for (Ball ball : balls) {
+      
+      Vec2 loc = ball.getLocation();
+      float distance = dist(x, y, loc.x, loc.y);
+      
+      if (distance < diameter) {
+        return false; // One ball would be inside the other, return false
+      }
     }
+    
+    return true;
   }
   
-  // Should be called when the mouse is pressed
-  void mouseRelease() {
-    if (mouseButton == LEFT && areBallsStill()) {
-      cue.endHit();
-    }
+  // Places the cue ball in the given location
+  void placeCueBall(float x, float y) {
+    
+    Ball cueBall = new Ball(x, y, getBallRadius(), 0); 
+    balls.add(cueBall);
   }
-  // --------------------------------------------- Events end
 }

@@ -1,8 +1,6 @@
 
 class Cue {
   
-  Ball cueBall;
-  
   float cueLength = 300;
   float cueThickness = 8;
   
@@ -18,11 +16,9 @@ class Cue {
     cuePower = new CuePowerDisplay(0.6); // Arbitrary relative height
   }
   
-  void updateCueBall(Ball _cueBall) {
-    cueBall = _cueBall;
-  }
-  
   void display() {
+    
+    Ball ball = table.getCueBall();
     
     // Determine the location of where we're going to hit
     // If we're hitting, it will be the saved starting location
@@ -30,18 +26,18 @@ class Cue {
     Vec2 location = hitting ? new Vec2(startLoc) : new Vec2(mouseX, mouseY);
     
     // This vector represents the direction we'll use to move our cue along
-    Vec2 ballLoc = cueBall.getLocation();
+    Vec2 ballLoc = ball.getLocation();
     Vec2 cueToBall = ballLoc.sub(location);
     
     // Normalize the cue to ball vector so it can be scaled afterwards
     cueToBall.normalize();
     
     // The end of our cue starts at the cue ball location
-    Vec2 end = cueBall.getLocation();
+    Vec2 end = ball.getLocation();
     
     // Then we add our direction vector multiplied by the desired separation
     // Half the cue thickness because it acts as radius
-    end.addLocal(cueToBall.mul(cueBall.radius + cueThickness / 2f));
+    end.addLocal(cueToBall.mul(ball.radius + cueThickness / 2f));
     
     // If we're hitting, increase the distance from the cue end to the ball
     // based on the offset hit distance
@@ -72,7 +68,7 @@ class Cue {
       return 0;
     }
     
-    Vec2 ballLoc = cueBall.getLocation();
+    Vec2 ballLoc = table.getCueBall().getLocation();
     Vec2 a = new Vec2(mouseX, mouseY).sub(ballLoc);
     Vec2 b = startLoc.sub(ballLoc);
     
@@ -120,7 +116,7 @@ class Cue {
     if (power.lengthSquared() == 0) {
       return false;
     }
-    cueBall.body.setLinearVelocity(box2d.vectorPixelsToWorld(power));
+    table.getCueBall().setVelocity(power);
     return true;
   }
   
@@ -132,7 +128,7 @@ class Cue {
       return new Vec2();
     }
     
-    Vec2 ballLoc = cueBall.getLocation();
+    Vec2 ballLoc = table.getCueBall().getLocation();
     Vec2 ballToLoc = startLoc.sub(ballLoc);
     ballToLoc.normalize();
     ballToLoc.mulLocal(getPower());

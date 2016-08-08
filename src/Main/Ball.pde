@@ -29,6 +29,10 @@ class Ball {
   Vec2 getLocation() {
     return box2d.getBodyPixelCoord(body);
   }
+  
+  void setVelocity(Vec2 velocity) {
+    body.setLinearVelocity(box2d.vectorPixelsToWorld(velocity));
+  }
 
   // This function marks the ball as dying
   // Returns true if it was alive, false otherwise
@@ -46,7 +50,7 @@ class Ball {
   
   // Determines whether the ball is still (stopped) or not
   boolean isStill() {
-    return isDead() || body.getLinearVelocity().length() < minSpeed;
+    return isDead() || (!isDying && body.getLinearVelocity().length() < minSpeed);
   }
   
   void update() {
