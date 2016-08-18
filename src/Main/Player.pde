@@ -46,6 +46,16 @@ class Player {
     pottedBalls = new ArrayList<BallImage>();
     
     cue = new Cue();
+    
+    // Add listener to fire local methods
+    addEventListener(new EventListener() {
+      @Override
+      public void mousePressed() { mousePress(); }
+      @Override
+      public void mouseReleased() { mouseRelease(); }
+      @Override
+      public void mouseClicked() { mouseClick(); }
+    });
   }
   
   // Which balls should this player pot?
@@ -104,7 +114,7 @@ class Player {
     }
     
     // If the cue ball isn't null (i.e. we're not placing), display cue
-    if (table.cueBallAlive() && myTurn && table.areBallsStill()) {
+    if (game.table.cueBallAlive() && myTurn && game.table.areBallsStill()) {
       cue.display();
     }
     
@@ -124,28 +134,30 @@ class Player {
   
   // --------------------------------------------- Events begin
   
-  // Should be called when the mouse is pressed
   void mouseClick() {
+    if (!myTurn) return;
     
     // Check whether we can or not place the cue ball
     if (_freePlace && freePlaceArea.contains(mouseX, mouseY)) {
-      if (table.canPlaceBall(mouseX, mouseY)) {
-        table.placeCueBall(mouseX, mouseY);
+      if (game.table.canPlaceBall(mouseX, mouseY)) {
+        game.table.placeCueBall(mouseX, mouseY);
         clearFreePlaceArea();
       }
     }
   }
   
-  // Should be called when the mouse is pressed
   void mousePress() {
-    if (table.cueBallAlive() && mouseButton == LEFT && table.areBallsStill()) {
+    if (!myTurn) return;
+    
+    if (game.table.cueBallAlive() && mouseButton == LEFT && game.table.areBallsStill()) {
       cue.beginHit();
     }
   }
   
-  // Should be called when the mouse is pressed
   void mouseRelease() {
-    if (table.cueBallAlive() && mouseButton == LEFT && table.areBallsStill()) {
+    if (!myTurn) return;
+    
+    if (game.table.cueBallAlive() && mouseButton == LEFT && game.table.areBallsStill()) {
       cue.endHit();
     }
   }

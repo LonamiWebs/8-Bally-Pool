@@ -192,7 +192,7 @@ class PoolTable {
         // If the hole contains the ball, remove it from both box2d world
         if (hole.containsBall(ball)) {
           if (ball.kill()) { // If we killed the ball, pot it!
-            playerManager.potBall(ball.number);
+            game.playerManager.potBall(ball.number);
           }
         }
       }
@@ -213,7 +213,7 @@ class PoolTable {
     
     // Toggle the player turns if necessary
     if (shouldChangeTurn()) {
-      playerManager.toggleTurns();
+      game.playerManager.toggleTurns();
     }
   }
   

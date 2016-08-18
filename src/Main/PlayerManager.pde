@@ -11,10 +11,10 @@ class PlayerManager {
     float whoFirst = random(1); // Who goes first? 50% each
     if (whoFirst < 0.5) {
       player1.myTurn = true;
-      player1.setFreePlaceArea(table.getFirstQuarter());
+      player1.setFreePlaceArea(game.table.getFirstQuarter());
     } else {
       player2.myTurn = true;
-      player2.setFreePlaceArea(table.getFirstQuarter());
+      player2.setFreePlaceArea(game.table.getFirstQuarter());
     }
   }
   
@@ -32,7 +32,7 @@ class PlayerManager {
     // Check if the potted ball was the cue ball
     if (ballNumber == 0) {
       // Those are bad news, the other player can now freely place the ball
-      otherPlayer.setFreePlaceArea(table.getArea());
+      otherPlayer.setFreePlaceArea(game.table.getArea());
       
       // Early terminate, no need for more checks
       return;
@@ -94,34 +94,4 @@ class PlayerManager {
     player1.display();
     player2.display();
   }
-  
-  // --------------------------------------------- Events begin
-  
-  // Should be called when the mouse is clicked
-  void mouseClick() {
-    if (player1.myTurn) {
-      player1.mouseClick();
-    } else {
-      player2.mouseClick();
-    }
-  }
-  
-  // Should be called when the mouse is pressed
-  void mousePress() {
-    if (player1.myTurn) {
-      player1.mousePress();
-    } else {
-      player2.mousePress();
-    }
-  }
-  
-  // Should be called when the mouse is released
-  void mouseRelease() {
-    if (player1.myTurn) {
-      player1.mouseRelease();
-    } else {
-      player2.mouseRelease();
-    }
-  }
-  // --------------------------------------------- Events end
 }

@@ -1,76 +1,51 @@
 
-// Global events are stored in this file for quicker access
+class EventListener {
+    public void mouseClicked() { }
+    public void mousePressed() { }
+    public void mouseReleased() { }
+    public void keyPressed() { }
+    public void beginContact(Contact cp) { }
+    public void endContact(Contact cp) { }
+}
+
+ArrayList<EventListener> eventListeners = new ArrayList<EventListener>();
+
+void addEventListener(EventListener event) {
+  eventListeners.add(event);
+}
+
 void keyPressed() {
-  switch (key) {
-    case 'r':
-    case 'R':
-      initWorld();
-      break;
-    
-    case 't':
-    case 'T':
-        while (!table.areBallsStill()) {
-          update();
-        }
-        // Update one last time to notify that balls are still
-        update();
-      break;
+  for (EventListener event : eventListeners) {
+    event.keyPressed();
   }
 }
 
 void mouseClicked() {
-  playerManager.mouseClick();
+  for (EventListener event : eventListeners) {
+    event.mouseClicked();
+  }
 }
 
 void mousePressed() {
-  playerManager.mousePress();
-  if (mouseButton == RIGHT) {
-    quickAdvance = true;
+  for (EventListener event : eventListeners) {
+    event.mousePressed();
   }
 }
 
 void mouseReleased() {
-  playerManager.mouseRelease();
-  if (mouseButton == RIGHT) {
-    quickAdvance = false;
+  for (EventListener event : eventListeners) {
+    event.mouseReleased();
   }
 }
 
 void beginContact(Contact cp) {
-  // Get both fixtures
-  Fixture f1 = cp.getFixtureA();
-  Fixture f2 = cp.getFixtureB();
-  
-  // Get both bodies
-  Body b1 = f1.getBody();
-  Body b2 = f2.getBody();
-
-  // Get our objects that reference these bodies
-  Object o1 = b1.getUserData();
-  Object o2 = b2.getUserData();
-  
-  // Get the velocity magnitude, and find the highest
-  float mag1 = b1.getLinearVelocity().length();
-  float mag2 = b2.getLinearVelocity().length();
-  float mag = max(mag1, mag2);
-  
-  // Use the highest velocity to determine the volume (between 0-1)
-  float vol = constrain(map(mag, 0, 10, 0, 1), 0, 1);
-  
-  // If both objects are balls, play a random ball hit sound
-  if (o1.getClass() == Ball.class && o2.getClass() == Ball.class) {
-    
-    int n = int(random(ballHitSamples.length)); // Get a random sample
-    setVolume(ballHitSamples[n], vol); // Set the volume depending its velocity
-    ballHitSamples[n].trigger(); // Play it
-    
-  } else { // One must have been wood
-    
-    int n = int(random(woodHitSamples.length)); // Get a random sample
-    setVolume(woodHitSamples[n], vol); // Set the volume depending its velocity
-    woodHitSamples[n].trigger(); // Play it
+  for (EventListener event : eventListeners) {
+    event.beginContact(cp);
   }
 }
 
 void endContact(Contact cp) {
+  for (EventListener event : eventListeners) {
+    event.endContact(cp);
+  }
 }

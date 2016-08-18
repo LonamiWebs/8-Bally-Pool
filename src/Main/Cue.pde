@@ -18,7 +18,7 @@ class Cue {
   
   void display() {
     
-    Ball ball = table.getCueBall();
+    Ball ball = game.table.getCueBall();
     
     // Determine the location of where we're going to hit
     // If we're hitting, it will be the saved starting location
@@ -68,7 +68,7 @@ class Cue {
       return 0;
     }
     
-    Vec2 ballLoc = table.getCueBall().getLocation();
+    Vec2 ballLoc = game.table.getCueBall().getLocation();
     Vec2 a = new Vec2(mouseX, mouseY).sub(ballLoc);
     Vec2 b = startLoc.sub(ballLoc);
     
@@ -116,7 +116,7 @@ class Cue {
     if (power.lengthSquared() == 0) {
       return false;
     }
-    table.getCueBall().setVelocity(power);
+    game.table.getCueBall().setVelocity(power);
     return true;
   }
   
@@ -128,7 +128,7 @@ class Cue {
       return new Vec2();
     }
     
-    Vec2 ballLoc = table.getCueBall().getLocation();
+    Vec2 ballLoc = game.table.getCueBall().getLocation();
     Vec2 ballToLoc = startLoc.sub(ballLoc);
     ballToLoc.normalize();
     ballToLoc.mulLocal(getPower());
