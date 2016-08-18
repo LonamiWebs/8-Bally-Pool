@@ -33,10 +33,10 @@ class GFrame extends GObject {
   void addChild(GObject child) {
     // If using a grid, update their size and location
     if (rows > 0 && cols > 0) {
-      child.loc.x *= colSize;
-      child.loc.y *= rowSize;
-      child.size.x *= colSize;
-      child.size.y *= rowSize;
+      child.area.x *= colSize;
+      child.area.y *= rowSize;
+      child.area.w *= colSize;
+      child.area.h *= rowSize;
     }
     
     child.parent = this;
@@ -54,16 +54,29 @@ class GFrame extends GObject {
     }
   }
   
-  void update() {
-    super.update();
-    for (GObject child : children) {
-      child.update();
-    }
-  }
-  
   void display() {
     for (GObject child : children) {
       child.display();
+    }
+  }
+  
+  void dispose() {
+    for (GObject child : children) {
+      child.dispose();
+    }
+  }
+  
+  void displayDebug() {
+    // Display grid
+    stroke(255, 0, 0);
+    strokeWeight(2);
+    // First draw rows
+    for (int i = 0; i < rows; i++) {
+      line(area.x, area.y + i * rowSize, area.x + area.w, area.y + i * rowSize);
+    }
+    // Then draw cols
+    for (int i = 0; i < cols; i++) {
+      line(area.x + i * colSize, area.y, area.x + i * colSize, area.y + area.h);
     }
   }
 }

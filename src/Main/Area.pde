@@ -52,6 +52,7 @@ class Area {
   
   // Display
   void display() {
+    rectMode(CORNER);
     rect(x, y, w, h);
   }
   

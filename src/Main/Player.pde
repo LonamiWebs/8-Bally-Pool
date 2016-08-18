@@ -105,6 +105,10 @@ class Player {
       cursor.typeLine("- You are strips");
     }
     
+    if (_freePlace) {
+      cursor.typeLine("- You have the cue ball in hand");
+    }
+    
     textAlign(LEFT, TOP);
     for (int i = 0; i < pottedBalls.size(); i++) {
       BallImage ball = pottedBalls.get(i);
@@ -113,21 +117,22 @@ class Player {
       ball.display(ballX, ballY);
     }
     
-    // If the cue ball isn't null (i.e. we're not placing), display cue
-    if (game.table.cueBallAlive() && myTurn && game.table.areBallsStill()) {
-      cue.display();
-    }
+    // It has to be my turn and the balls must be still before displaying anything else
+    if (myTurn && game.table.areBallsStill()) {
+      // If the cue ball is alive, we can display the cue
+      if (game.table.cueBallAlive()) {
+        cue.display();
+      }
     
-    // If we're free placing, display the new ball place
-    if (_freePlace) {
-      cursor.typeLine("- You have the cue ball in hand");
-      
-      noStroke();
-      fill(255, 255, 255, 40);
-      freePlaceArea.display();
-      
-      if (freePlaceArea.contains(mouseX, mouseY)) {
-        cueBallDisplay.display(mouseX, mouseY);
+      // If we're free placing, display the new ball place
+      if (_freePlace) {
+        noStroke();
+        fill(255, 255, 255, 40);
+        freePlaceArea.display();
+        
+        if (freePlaceArea.contains(mouseX, mouseY)) {
+          cueBallDisplay.display(mouseX, mouseY);
+        }
       }
     }
   }

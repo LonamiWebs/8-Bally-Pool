@@ -18,6 +18,8 @@ class Game
   
   PApplet parent;
   
+  boolean isInitialized;  // Is the game initialized?
+  
   public Game(PApplet _parent) {
     parent = _parent;
     
@@ -35,15 +37,6 @@ class Game
     }
     
     addEventListener(new EventListener() {
-      @Override
-      public void keyPressed() {
-        switch (key) {
-          case 'r':
-          case 'R':
-            initWorld(); // Reset world
-            break;
-        }
-      }
       @Override
       public void beginContact(Contact cp) {
         onContact(cp); // Fire local method
@@ -65,7 +58,9 @@ class Game
     
     // Initialize table and players (those floats are sizes)
     table = new PoolTable(0.6);
-    playerManager = new PlayerManager(0.3, 0.13); 
+    playerManager = new PlayerManager(0.3, 0.13);
+    
+    isInitialized = true;
   }
   
   void run() {
@@ -82,11 +77,6 @@ class Game
   void display() {
     table.display();
     playerManager.display();
-    
-    fill(0);
-    cursor.locate(10, height - 20);
-    cursor.setTextSize(12);
-    cursor.typePrevLine("Press R to Reset");
   }
   
   void setVolume(AudioSample sample, float volume) {

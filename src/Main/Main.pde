@@ -10,6 +10,8 @@ import org.jbox2d.dynamics.contacts.*;
 Game game;
 Cursor cursor; // For writting text to screen
 
+GFrame currentFrame;
+
 
 void settings() {
   size(1000, 640);
@@ -20,7 +22,7 @@ void setup() {
   surface.setTitle("8-Ball Pool");
   
   game = new Game(this);
-  game.initWorld();
+  currentFrame = buildWelcomeFrame();
     
   // Load cursor for writing text
   cursor = new Cursor();
@@ -33,7 +35,14 @@ void draw() {
   smooth();
   background(255, 210, 240);
   
-  game.run();
+  // TODO, The ball can be placed right when the game starts!!
+  if (game.isInitialized) {
+    game.run();
+  }
+  
+  if (currentFrame != null) {
+    currentFrame.display();
+  }
 }
 
 // Returns the sign of a given value

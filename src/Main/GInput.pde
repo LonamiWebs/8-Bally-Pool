@@ -8,12 +8,13 @@ class GInput extends GObject {
   String cachedText;
   
   String hint;
+  int maxLength = 65535;
   
   GInput(float x, float y, float w, float h) {
     super(x, y, w, h);
     
-    background = color(20, 40, 40);
-    focusBackground = color(20);
+    background = color(0, 40, 40);
+    focusBackground = color(0, 60, 60);
     focusForeground = color(220);
     
     textBuilder = new StringBuilder();
@@ -30,8 +31,8 @@ class GInput extends GObject {
     if (keyCode == BACKSPACE || (int)key == DELETE) {
       // Set length to current - 1 (trim last character)
       textBuilder.setLength(max(textBuilder.length() - 1, 0));
-    } else if (keyCode >= (int)' ' && keyCode < 127) {
-      // Ensure that the key is a valid character
+    } else if (keyCode >= (int)' ' && keyCode < 127 && // Ensure that the key is a valid character
+               textBuilder.length() < maxLength) { // Ensure that we do not exceed the max length
       textBuilder.append(key);
     }
     
@@ -40,29 +41,28 @@ class GInput extends GObject {
   
   void display() {
     
-    if (contains(mouseX, mouseY)) {
+    if (area.contains(mouseX, mouseY) || hasFocus) {
       fill(focusBackground);
       stroke(focusForeground);
     } else {
       fill(background);
       stroke(foreground);
     }
-    rectMode(CORNER);
-    rect(loc.x, loc.y, size.x, size.y);
+    area.display();
     
     textAlign(CENTER, CENTER);
     fill(foreground);
     if (!hasFocus && textBuilder.length() == 0) { // If no text, display hint
-      text(hint, loc.x + size.x / 2, loc.y + size.y / 2);
+      text(hint, area.x + area.w / 2, area.y + area.h / 2);
     } else {
-      PVector cursorLoc = new PVector(loc.x + size.x / 2, loc.y + size.y / 2);
+      PVector cursorLoc = new PVector(area.x + area.w / 2, area.y + area.h / 2);
       text(cachedText, cursorLoc.x, cursorLoc.y);
       
       // Move the cursor to the end and draw a blinking line if focused
       if (hasFocus && frameCount % 60 < 30) { // Limit to 60 frames, blink on half
       
         cursorLoc.add(textWidth(cachedText) / 2.0, 0); // Divide width by two since we're using CENTER align
-        line(cursorLoc.x, cursorLoc.y - size.y / 6, cursorLoc.x, cursorLoc.y + size.y / 6);
+        line(cursorLoc.x, cursorLoc.y - area.h / 6, cursorLoc.x, cursorLoc.y + area.h / 6);
       }
     }
   }

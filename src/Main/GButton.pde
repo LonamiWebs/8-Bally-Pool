@@ -17,18 +17,17 @@ class GButton extends GObject {
   
   void display() {
     
-    if (contains(mouseX, mouseY)) {
+    if (area.contains(mouseX, mouseY)) {
       fill(overBackground);
       stroke(overForeground);
     } else {
       fill(background);
       stroke(foreground);
     }
-    rectMode(CORNER);
-    rect(loc.x, loc.y, size.x, size.y);
+    area.display();
     
     textAlign(CENTER, CENTER);
     fill(foreground);
-    text(label, loc.x + size.x / 2, loc.y + size.y / 2);
+    text(label, area.x + area.w / 2, area.y + area.h / 2);
   }
 }

@@ -1,12 +1,12 @@
 
-interface GObjectEvent {
-  void onClick(GObject sender); 
+class GObjectListener {
+  public void mouseClicked(GObject sender) { }
+  public void keyPressed(GObject sender) { }
 }
   
 class GObject {
-  
-  PVector loc;
-  PVector size;
+
+  Area area;
   
   color background;
   color foreground;
@@ -19,46 +19,41 @@ class GObject {
   boolean hasFocus;
   
   GFrame parent;
-  GObjectEvent event; // Keep track of the event listener
+  
+  // Adding event listener to the GObjects
+  ArrayList<GObjectListener> gobjectListeners = new ArrayList<GObjectListener>();
+  int eventListenerId;  // Store the event listener ID here for later disposal
+  
+  void addGObjectListener(GObjectListener event) {
+    gobjectListeners.add(event);
+  }
   
   GObject() {
     background = color(0);
     foreground = color(255);
-    loc = new PVector();
-    size = new PVector();
+    area = new Area();
+    
+    // Register to global events to use locally
+    eventListenerId = addEventListener(new EventListener() {
+      @Override
+      public void mouseClicked() {
+        if (area.contains(mouseX, mouseY)) {
+          onClick(); // Fire local click if the mouse is on this object 
+        }
+      }
+      @Override
+      public void keyPressed() {
+        if (hasFocus) {
+          onKey(); // Fire local key press if this object has the focus 
+        }
+      }
+    });
   }
   
   GObject(float x, float y, float w, float h) {
     this();
-    loc.set(x, y);
-    size.set(w, h);
-  }
-  
-  void update() {
-    if (!wasMouseDown && mousePressed) {
-      if (contains(mouseX, mouseY)) { // Click
-        onClick();
-      }
-    }
-    boolean keyPress = false; // Was there a key press?
-    // Check for keypress/repeat manually
-    if (keyPressed) {
-      if (frameCount - keyDownFrame > framesBetweenKeyRepeat) {
-        keyDownFrame = frameCount;
-        keyPress = true;
-      }
-    } else {
-      keyDownFrame = -1;
-    }
-    
-    if (keyPress) {
-      if (hasFocus) { // Key press
-        onKey();
-      }
-    }
-    
-    // Update new value
-    wasMouseDown = mousePressed;
+    area.locate(x, y);
+    area.resize(w, h);
   }
   
   // Fired when the mouse is clicked
@@ -67,27 +62,29 @@ class GObject {
       parent.clearFocus();
     }
     hasFocus = true;
-    if (event != null) {
-      event.onClick(this);
+    
+    // Fire the event to those subscribed
+    for (GObjectListener listener : gobjectListeners) {
+      listener.mouseClicked(this);
     }
   }
   
   
   // Fired when a key is pressed
-  void onKey() { }
-  
-  boolean contains(float x, float y) {
-    return (x > loc.x &&
-            y > loc.y &&
-            x < loc.x + size.x &&
-            y < loc.y + size.y);
+  void onKey() {
+    // Fire the event to those subscribed
+    for (GObjectListener listener : gobjectListeners) {
+      listener.keyPressed(this);
+    }
   }
   
   void display() {
     fill(background);
     stroke(foreground);
-    
-    rectMode(CORNER);
-    rect(loc.x, loc.y, size.x, size.y);
+    area.display();
+  }
+  
+  void dispose() {
+    delEventListener(eventListenerId);
   }
 }

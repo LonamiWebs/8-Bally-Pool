@@ -265,10 +265,14 @@ class PoolTable {
   
   // Determines whether the cue ball is alive or not
   boolean cueBallAlive() {
-    for (Ball b : balls) {
-      if (b.number == 0) { // TODO actually, isn't the cue ball always the last?
+    if (balls.size() == 0) {
+      return false;
+    }
+    // The last ball should always be the cue ball
+    Ball cueBall = balls.get(balls.size() - 1);
+    if (cueBall.number == 0 &&  // If it actually is
+        cueBall.isStill()) { // And it's stopped (i.e., also not dying)
         return true;
-      }
     }
     return false;
   }
