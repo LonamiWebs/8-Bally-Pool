@@ -1,3 +1,7 @@
+Moved to https://codeberg.org/Lonami/8-Bally-Pool. The GitHub repository may be deleted in the future.
+
+---
+
 # 8-Bally-Pool
 8-Ball Pool game made with Processing
 
